@@ -1,0 +1,135 @@
+/* KaTeX 深色主题样式 */
+
+/* 行内公式 */
+.katex-inline {
+  display: inline;
+  padding: 0.1em 0.3em;
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 1em;
+}
+
+/* 块级公式 */
+.katex-block {
+  display: block;
+  margin: 1em 0;
+  padding: var(--theme-block-padding, 1em);
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-md, 8px);
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* KaTeX 全局颜色覆盖 - 深色主题适配 */
+.katex {
+  color: var(--theme-text-primary, #cdd6f4);
+  font-size: 1.1em;
+}
+
+.katex .katex-html {
+  color: var(--theme-text-primary, #cdd6f4);
+}
+
+/* KaTeX 内部元素颜色 */
+.katex .mord,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .minner {
+  color: var(--theme-text-primary, #cdd6f4);
+}
+
+/* 分数线 */
+.katex .frac-line {
+  border-bottom-color: var(--theme-text-secondary, #a6adc8);
+}
+
+/* 根号 */
+.katex .sqrt {
+  color: var(--theme-text-primary, #cdd6f4);
+}
+
+/* 求和、积分等大型运算符 */
+.katex .mop {
+  color: var(--theme-accent, #89b4fa);
+}
+
+/* 上下标 */
+.katex .msupsub {
+  color: var(--theme-text-secondary, #a6adc8);
+}
+
+/* 括号 */
+.katex .mopen,
+.katex .mclose {
+  color: var(--theme-text-primary, #cdd6f4);
+}
+
+/* 数学公式错误样式 */
+.math-error {
+  color: #f38ba8;
+  font-family: var(--theme-font-family-mono, 'JetBrains Mono', monospace);
+  font-size: 0.9em;
+  background-color: rgba(243, 139, 168, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid rgba(243, 139, 168, 0.3);
+}
+
+/* Preview 中的数学公式样式 */
+.preview-content .math-inline {
+  display: inline;
+  padding: 0.1em 0.3em;
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.preview-content .math-block {
+  display: block;
+  margin: 1em 0;
+  padding: var(--theme-block-padding, 1em);
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-md, 8px);
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* Editor 中的数学公式样式 */
+.milkdown .editor .math-inline {
+  display: inline;
+  padding: 0.15em 0.35em;
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-sm, 4px);
+  cursor: default;
+  transition: background-color 0.2s ease;
+}
+
+.milkdown .editor .math-inline:hover {
+  background-color: var(--theme-table-row-hover, #2a2a3c);
+}
+
+.milkdown .editor .math-block {
+  display: block;
+  margin: 1em 0;
+  padding: var(--theme-block-padding, 1em);
+  background-color: var(--theme-code-bg, #181825);
+  border-radius: var(--radius-md, 8px);
+  overflow-x: auto;
+  text-align: center;
+  cursor: default;
+  transition: background-color 0.2s ease;
+}
+
+.milkdown .editor .math-block:hover {
+  background-color: var(--theme-table-row-hover, #2a2a3c);
+}
+
+/* 数学公式选中样式 */
+.milkdown .editor .math-inline.ProseMirror-selectednode,
+.milkdown .editor .math-block.ProseMirror-selectednode {
+  outline: 2px solid var(--theme-accent, #89b4fa);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}

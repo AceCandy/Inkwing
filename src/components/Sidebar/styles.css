@@ -1,0 +1,180 @@
+.sidebar {
+  width: 260px;
+  height: 100%;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding-top: 30px; /* macOS 交通灯窗口控制按钮预留空间 */
+}
+
+.sidebar-header {
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
+  display: flex;
+  justify-content: center;
+  border-bottom: none; /* 移除突兀的分割线 */
+}
+
+.sidebar-header h3 {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.sidebar-title-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.sidebar-header-search-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+.sidebar-header:hover .sidebar-header-search-btn {
+  opacity: 1;
+}
+
+.sidebar-header-search-btn:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* 搜索模式头部 */
+.sidebar-search-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.search-back-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.search-back-btn:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.search-input {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border-bottom: 1.5px solid var(--accent) !important;
+  padding: 2px 0;
+  outline: none;
+  background: transparent;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.sidebar-empty {
+  padding: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.outline-list {
+  list-style: none;
+}
+
+.outline-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.outline-item:hover {
+  background-color: var(--bg-surface);
+}
+
+.outline-arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.outline-arrow-container:hover {
+  background-color: var(--border);
+}
+
+.outline-arrow-spacer {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.outline-text {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* 用字体样式区分大纲内容的层级 */
+.outline-item.level-1 .outline-text {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.outline-item.level-2 .outline-text {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  opacity: 0.95;
+}
+
+.outline-item.level-3 .outline-text,
+.outline-item.level-4 .outline-text,
+.outline-item.level-5 .outline-text,
+.outline-item.level-6 .outline-text {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.85;
+}

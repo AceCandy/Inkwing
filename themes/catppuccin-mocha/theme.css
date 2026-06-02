@@ -1,0 +1,34 @@
+/* Catppuccin Mocha Theme */
+:root {
+  /* Colors */
+  --theme-editor-bg: #1e1e2e;
+  --theme-editor-bg-secondary: #181825;
+  --theme-preview-bg: #1e1e2e;
+  --theme-text-primary: #cdd6f4;
+  --theme-text-secondary: #a6adc8;
+  --theme-text-muted: #6c7086;
+  --theme-accent: #89b4fa;
+  --theme-accent-hover: #74c7ec;
+  --theme-border: #45475a;
+  --theme-success: #a6e3a1;
+  --theme-warning: #f9e2af;
+  --theme-error: #f38ba8;
+  --theme-code-bg: #181825;
+  --theme-code-text: #cdd6f4;
+  --theme-link: #89b4fa;
+  --theme-link-hover: #74c7ec;
+  --theme-blockquote-bg: #313244;
+  --theme-blockquote-border: #89b4fa;
+  --theme-table-border: #45475a;
+  --theme-table-header-bg: #313244;
+  --theme-table-row-hover: #2a2a3c;
+
+  /* Typography */
+  --theme-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --theme-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --theme-font-size: 16px;
+  --theme-line-height: 1.75;
+  --theme-h1-size: 2em;
+  --theme-h2-size: 1.5em;
+  --theme-h3-size: 1.25em;
+}

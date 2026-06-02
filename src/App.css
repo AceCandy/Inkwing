@@ -1,0 +1,348 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.editor-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.split-view {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.split-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.split-divider {
+  width: 3px;
+  background-color: var(--border);
+  cursor: col-resize;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.split-divider:hover,
+.split-divider:active {
+  background-color: var(--accent);
+}
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--spacing-md);
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 0 var(--spacing-md);
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.auto-save-status {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.status-item.modified {
+  color: var(--warning);
+}
+
+.welcome-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.welcome-title {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.welcome-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 32px;
+  letter-spacing: 0.05em;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.welcome-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.welcome-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background-color: var(--bg-surface);
+}
+
+.welcome-btn.primary {
+  color: var(--bg-primary);
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.welcome-btn.primary:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.welcome-shortcuts {
+  display: flex;
+  gap: 24px;
+  margin-top: 48px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* 顶部 TitleBar 样式 */
+.editor-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  background-color: var(--bg-primary);
+  border-bottom: none; /* 去除下面的分割线 */
+  padding: 0 var(--spacing-lg);
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* 如果侧边栏隐藏了，需要在最左边腾出红黄绿交通灯按钮的位置 */
+.editor-header-bar.has-native-buttons {
+  padding-left: 80px;
+}
+
+/* 确保内部的可交互元素不阻碍拖动，且可以正常交互 */
+.header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.header-filename-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  font-size: 0.825rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.header-filename-display:hover {
+  background-color: var(--bg-surface);
+}
+
+.header-file-icon {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.header-filename-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-modified-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--warning);
+  border-radius: 50%;
+  margin-left: 4px;
+  display: inline-block;
+}
+
+.header-filename-input {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  outline: none;
+  width: 180px;
+  text-align: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+/* 右上角统计指标下拉菜单样式 */
+.header-stat-container {
+  position: relative;
+  user-select: none;
+}
+
+.header-stat-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.header-stat-trigger:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.header-stat-arrow {
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.header-stat-container:hover .header-stat-arrow {
+  opacity: 1;
+}
+
+.header-stat-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.header-stat-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 140px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  padding: 6px;
+  list-style: none;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 6px var(--spacing-sm);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  justify-content: center;
+  font-weight: 400;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-primary);
+}
+
+/* 选中高亮状态，和图一的淡蓝色高亮圆角保持一致 */
+.dropdown-item.active {
+  background-color: var(--accent);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.dropdown-item .check-icon {
+  position: absolute;
+  left: var(--spacing-sm);
+  font-weight: bold;
+}
