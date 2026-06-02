@@ -4,8 +4,8 @@ import { adaptTyporaCss, extractTyporaShellVariables } from './cssAdapter'
 import { readTyporaThemeCss } from './api'
 import type { TyporaThemeOption } from './types'
 
-const ACTIVE_TYPORA_THEME_STYLE_ID = 'yammmby-active-typora-theme'
-const ACTIVE_TYPORA_SHELL_STYLE_ID = 'yammmby-active-typora-shell-theme'
+const ACTIVE_TYPORA_THEME_STYLE_ID = 'inkwing-active-typora-theme'
+const ACTIVE_TYPORA_SHELL_STYLE_ID = 'inkwing-active-typora-shell-theme'
 const TYPORA_BODY_CLASS = 'typora-theme-scope'
 
 function normalizeFilePath(filePath: string): string {

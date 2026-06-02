@@ -1,141 +1,116 @@
-# Yammmby
+# Inkwing
 
-A modern, cross-platform Markdown editor with beautiful themes and WYSIWYG editing.
+[简体中文](./README.zh-CN.md)
+
+Inkwing is a desktop Markdown editor for focused writing. It combines a Tauri
+2 native shell, a React and TypeScript interface, Milkdown editing, live preview,
+document outline navigation, and an extensible theme system.
+
+The Chinese product name is **墨羽**.
 
 ## Features
 
-- 🎨 **Beautiful Themes** - Built-in dark/light themes with customizable CSS variables
-- ✨ **WYSIWYG Editing** - Real-time rich text editing experience
-- 📝 **Split View** - Traditional editor + preview mode
-- 📁 **File Management** - Open, save, and manage Markdown files
-- 📋 **Document Outline** - Sidebar with heading navigation
-- 🎯 **Cross-Platform** - Works on macOS, Windows, and Linux
+- WYSIWYG Markdown editing powered by Milkdown.
+- Split editor and preview mode for source-first workflows.
+- Document outline sidebar generated from Markdown headings.
+- Local file open, save, rename, export, and auto-save support.
+- Built-in dark and light themes based on CSS variables.
+- Folder-based Typora theme import with scoped CSS adaptation.
+- KaTeX math rendering and Prism code highlighting.
+- Cross-platform desktop foundation through Tauri.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Tauri 2.x (Rust backend) |
-| Frontend | React + TypeScript |
-| Editor | Milkdown (ProseMirror-based) |
-| Styling | CSS Variables + Theme System |
+| Area | Technology |
+| --- | --- |
+| Desktop shell | Tauri 2 |
+| Backend | Rust |
+| Frontend | React 18, TypeScript, Vite |
+| Editor | Milkdown, ProseMirror |
+| State | Zustand |
+| Tests | Vitest, Cargo test |
+
+## Requirements
+
+- Node.js 18 or newer.
+- Rust 1.70 or newer.
+- Platform prerequisites for Tauri 2. See the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- Rust 1.70+
-- System dependencies for Tauri ([see Tauri docs](https://v2.tauri.app/start/prerequisites/))
-
-### Installation
+Install dependencies:
 
 ```bash
-# Install dependencies
 npm install
+```
 
-# Run in development mode
+Run the web development server:
+
+```bash
 npm run dev
+```
 
-# Build for production
+Run the Tauri desktop app:
+
+```bash
+npm run tauri -- dev
+```
+
+Build the frontend:
+
+```bash
 npm run build
+```
+
+Run tests:
+
+```bash
+npm run test -- --run
+cd src-tauri && cargo test
 ```
 
 ## Project Structure
 
-```
-yammmby/
-├── src-tauri/           # Rust backend
-│   ├── src/
-│   │   ├── main.rs      # Entry point
-│   │   └── lib.rs       # Tauri commands
-│   └── Cargo.toml
-├── src/                 # React frontend
-│   ├── components/
-│   │   ├── Editor/      # Milkdown editor
-│   │   ├── Preview/     # Markdown preview
-│   │   ├── Sidebar/     # Document outline
-│   │   ├── Toolbar/     # File operations
-│   │   └── ThemeManager/# Theme settings
-│   ├── stores/          # Zustand state
-│   └── themes/          # Theme definitions
-├── themes/              # External theme packages
+```text
+inkwing/
+├── src/                  # React frontend
+│   ├── components/       # Editor, preview, sidebar, settings
+│   ├── hooks/            # Auto-save and keyboard shortcuts
+│   ├── stores/           # Zustand editor state
+│   ├── themes/           # Built-in and Typora theme runtime
+│   └── utils/            # Export and runtime helpers
+├── src-tauri/            # Tauri and Rust backend
+│   ├── capabilities/     # Tauri capability configuration
+│   └── src/              # Commands and native app entry points
+├── themes/               # Bundled CSS-variable themes
+├── third-theme/          # Reference Typora theme package
 └── package.json
 ```
 
 ## Theme System
 
-### Built-in Themes
+Inkwing supports two theme paths:
 
-- **Default Dark** - Clean dark theme for comfortable editing
+- Built-in themes are TypeScript theme objects mapped to global CSS variables.
+- Imported Typora themes are copied into the app data directory, registered by a
+  manifest, read through Tauri commands, adapted to Inkwing's editor and preview
+  scopes, and injected at runtime.
 
-### External Themes
+Imported Typora theme CSS is not applied globally. Selectors such as `#write`,
+`body`, `:root`, `.md-fences`, and Typora shell selectors are rewritten or
+filtered so settings, title bar, and sidebar UI remain isolated.
 
-Themes can be loaded from the `themes/` directory. Each theme contains:
+## Git Hygiene
 
-```
-themes/my-theme/
-├── theme.json    # Theme metadata
-└── theme.css     # Theme styles (CSS variables)
-```
+The repository intentionally ignores:
 
-### theme.json
-
-```json
-{
-  "id": "my-theme",
-  "name": "My Theme",
-  "description": "A custom theme",
-  "path": "./themes/my-theme"
-}
-```
-
-### CSS Variables
-
-Themes use CSS variables for customization:
-
-```css
-:root {
-  --theme-editor-bg: #1e1e2e;
-  --theme-text-primary: #cdd6f4;
-  --theme-accent: #89b4fa;
-  /* ... more variables */
-}
-```
-
-## Development
-
-### Running in Development
-
-```bash
-npm run dev
-```
-
-This starts:
-- Vite dev server at `http://localhost:1420`
-- Tauri app with hot reload
-
-### Building
-
-```bash
-npm run build
-```
-
-The built app will be in `src-tauri/target/release/`.
-
-## Roadmap
-
-- [ ] Drag-and-drop file opening
-- [ ] Export to PDF/HTML
-- [ ] Math formula support (KaTeX)
-- [ ] Mermaid diagram support
-- [ ] Plugin system
-- [ ] Keyboard shortcuts customization
-- [ ] Multi-tab support
-- [ ] Search and replace
-- [ ] Auto-save
-- [ ] Version history
+- `node_modules/`
+- `dist/`
+- `src-tauri/target/`
+- generated Tauri schema files
+- local planning artifacts
+- `.env*`, logs, and OS/editor files
 
 ## License
 
-MIT
+Inkwing is released under the [MIT License](./LICENSE).

@@ -39,7 +39,7 @@ describe('rewriteCssAssetUrls', () => {
 })
 
 describe('extractTyporaShellVariables', () => {
-  it('maps known Typora shell variables into Yammmby shell variables', () => {
+  it('maps known Typora shell variables into Inkwing shell variables', () => {
     const css = `
       :root {
         --bg-color: #faf9f5;
@@ -160,7 +160,7 @@ describe('adaptTyporaCss', () => {
     expect(result).not.toContain(':root {')
   })
 
-  it('maps Typora code fence selectors to Yammmby pre elements', () => {
+  it('maps Typora code fence selectors to Inkwing pre elements', () => {
     const css = [
       '.md-fences { background-color: var(--pre-bg-color); border-color: var(--pre-border-color); }',
       '.CodeMirror-lines { color: var(--pre-inputfont-color); }',

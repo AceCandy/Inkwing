@@ -7,7 +7,7 @@ type Translations = Record<string, string | Record<string, string>>
 const translations: Record<string, Translations> = {
   zh: {
     // 欢迎页
-    'welcome.title': 'Yammmby',
+    'welcome.title': '墨羽',
     'welcome.subtitle': 'Markdown 编辑器',
     'welcome.newFile': '新建文件',
     'welcome.openFile': '打开文件',
@@ -48,7 +48,7 @@ const translations: Record<string, Translations> = {
   },
   en: {
     // Welcome page
-    'welcome.title': 'Yammmby',
+    'welcome.title': 'Inkwing',
     'welcome.subtitle': 'Markdown Editor',
     'welcome.newFile': 'New File',
     'welcome.openFile': 'Open File',

@@ -1,12 +1,12 @@
 [package]
-name = "yammmby"
+name = "inkwing"
 version = "0.1.0"
-description = "A modern Markdown editor with beautiful themes"
-authors = ["you"]
+description = "Inkwing is a modern Markdown editor for focused writing"
+authors = ["AceCandy"]
 edition = "2021"
 
 [lib]
-name = "yammmby_lib"
+name = "inkwing_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

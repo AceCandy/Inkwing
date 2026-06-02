@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager};
 
-const MANIFEST_FILE: &str = "yammmby-theme.json";
+const MANIFEST_FILE: &str = "inkwing-theme.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -489,7 +489,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        std::env::temp_dir().join(format!("yammmby-{}-{}", name, suffix))
+        std::env::temp_dir().join(format!("inkwing-{}-{}", name, suffix))
     }
 
     fn create_basic_theme_source(dir: &Path) {
