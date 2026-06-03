@@ -112,6 +112,10 @@ fn validate_css_file(css_file: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn is_typora_user_css_file(file_name: &str) -> bool {
+    file_name == "base.user.css" || file_name.ends_with(".user.css")
+}
+
 pub(crate) fn scan_css_files(dir: &Path) -> Result<Vec<TyporaThemeVariant>, String> {
     let mut entries = Vec::new();
     let read_dir = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {}", e))?;
@@ -129,6 +133,10 @@ pub(crate) fn scan_css_files(dir: &Path) -> Result<Vec<TyporaThemeVariant>, Stri
         };
 
         if !file_name.ends_with(".css") {
+            continue;
+        }
+
+        if is_typora_user_css_file(&file_name) {
             continue;
         }
 
@@ -262,6 +270,41 @@ fn ensure_variant_exists(package: &TyporaThemePackage, css_file: &str) -> Result
     } else {
         Err(format!("CSS file {} is not declared in manifest", css_file))
     }
+}
+
+fn optional_css_file(theme_dir: &Path, css_file: &str) -> Result<Option<String>, String> {
+    validate_css_file(css_file)?;
+
+    let css_path = theme_dir.join(css_file);
+    if !css_path.exists() {
+        return Ok(None);
+    }
+
+    let metadata = fs::symlink_metadata(&css_path)
+        .map_err(|e| format!("Failed to inspect CSS {}: {}", css_path.display(), e))?;
+    if metadata.file_type().is_symlink() {
+        return Err(format!(
+            "Symlink CSS file is not allowed: {}",
+            css_path.display()
+        ));
+    }
+    if !metadata.is_file() {
+        return Err(format!("CSS path is not a file: {}", css_path.display()));
+    }
+
+    fs::read_to_string(&css_path)
+        .map(Some)
+        .map_err(|e| format!("Failed to read CSS {}: {}", css_path.display(), e))
+}
+
+fn theme_user_css_file(css_file: &str) -> Result<String, String> {
+    validate_css_file(css_file)?;
+    let stem = Path::new(css_file)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| format!("Invalid CSS file name: {}", css_file))?;
+
+    Ok(format!("{}.user.css", stem))
 }
 
 fn resolve_import_paths(root: &Path, normalized_id: &str) -> Result<(PathBuf, PathBuf), String> {
@@ -471,11 +514,22 @@ pub(crate) fn read_typora_theme_css_from_root(
     ensure_variant_exists(&package, css_file)?;
 
     let css_path = theme_dir.join(css_file);
-    let css = fs::read_to_string(&css_path)
+    let main_css = fs::read_to_string(&css_path)
         .map_err(|e| format!("Failed to read CSS {}: {}", css_path.display(), e))?;
 
+    let mut css_parts = vec![main_css];
+    if let Some(base_user_css) = optional_css_file(&theme_dir, "base.user.css")? {
+        css_parts.push(base_user_css);
+    }
+    let theme_user_file_name = theme_user_css_file(css_file)?;
+    if theme_user_file_name != "base.user.css" {
+        if let Some(theme_user_css) = optional_css_file(&theme_dir, &theme_user_file_name)? {
+            css_parts.push(theme_user_css);
+        }
+    }
+
     Ok(TyporaThemeCss {
-        css,
+        css: css_parts.join("\n"),
         base_path: package.base_path,
     })
 }
@@ -530,6 +584,22 @@ mod tests {
         assert_eq!(variants.len(), 2);
         assert_eq!(variants[0].css_file, "a.css");
         assert_eq!(variants[1].css_file, "b.css");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn scan_css_files_ignores_typora_user_css_overrides() {
+        let dir = unique_temp_dir("scan-css-user-overrides");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("claude.css"), "body {}").unwrap();
+        fs::write(dir.join("base.user.css"), "body { color: red; }").unwrap();
+        fs::write(dir.join("claude.user.css"), "body { color: blue; }").unwrap();
+
+        let variants = scan_css_files(&dir).unwrap();
+
+        assert_eq!(variants.len(), 1);
+        assert_eq!(variants[0].css_file, "claude.css");
 
         let _ = fs::remove_dir_all(&dir);
     }
@@ -627,6 +697,59 @@ mod tests {
 
         let _ = fs::remove_dir_all(&root);
         let _ = fs::remove_dir_all(&target_dir);
+    }
+
+    #[test]
+    fn read_helper_appends_typora_user_css_in_runtime_order() {
+        let root = unique_temp_dir("read-user-css-root");
+        let theme_dir = root.join("theme-a");
+        fs::create_dir_all(&theme_dir).unwrap();
+        fs::write(
+            theme_dir.join("claude.css"),
+            "/* main */\n#write { color: black; }",
+        )
+        .unwrap();
+        fs::write(
+            theme_dir.join("base.user.css"),
+            "/* base user */\n#write { color: red; }",
+        )
+        .unwrap();
+        fs::write(
+            theme_dir.join("claude.user.css"),
+            "/* theme user */\n#write { color: blue; }",
+        )
+        .unwrap();
+
+        let package = TyporaThemePackage {
+            id: "theme-a".to_string(),
+            name: "Theme A".to_string(),
+            theme_type: "typora".to_string(),
+            base_path: theme_dir.to_string_lossy().to_string(),
+            variants: vec![TyporaThemeVariant {
+                id: "claude".to_string(),
+                name: "Claude".to_string(),
+                css_file: "claude.css".to_string(),
+            }],
+            imported_at: "1".to_string(),
+        };
+        fs::write(
+            manifest_path(&theme_dir),
+            serde_json::to_string_pretty(&package).unwrap(),
+        )
+        .unwrap();
+
+        let css = read_typora_theme_css_from_root(&root, "theme-a", "claude.css")
+            .unwrap()
+            .css;
+
+        let main_index = css.find("/* main */").unwrap();
+        let base_user_index = css.find("/* base user */").unwrap();
+        let theme_user_index = css.find("/* theme user */").unwrap();
+
+        assert!(main_index < base_user_index);
+        assert!(base_user_index < theme_user_index);
+
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]

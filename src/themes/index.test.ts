@@ -49,4 +49,37 @@ describe('theme registry', () => {
       }),
     )
   })
+
+  it('does not expose Typora user override css files as selectable theme variants', async () => {
+    vi.mocked(invoke).mockResolvedValueOnce([
+      {
+        id: 'claude-typora-theme-v1-0-0',
+        name: 'Claude Typora Theme',
+        type: 'typora',
+        basePath: '/themes/claude',
+        importedAt: '2026-06-02T00:00:00Z',
+        variants: [
+          {
+            id: 'claude',
+            name: 'Claude',
+            cssFile: 'claude.css',
+          },
+          {
+            id: 'base-user',
+            name: 'Base User',
+            cssFile: 'base.user.css',
+          },
+          {
+            id: 'claude-user',
+            name: 'Claude User',
+            cssFile: 'claude.user.css',
+          },
+        ],
+      },
+    ])
+
+    const themes = await refreshExternalThemes()
+
+    expect(themes.map((theme) => theme.cssFile)).toEqual(['claude.css'])
+  })
 })

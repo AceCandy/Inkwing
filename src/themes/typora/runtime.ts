@@ -8,14 +8,16 @@ const ACTIVE_TYPORA_THEME_STYLE_ID = 'inkwing-active-typora-theme'
 const ACTIVE_TYPORA_SHELL_STYLE_ID = 'inkwing-active-typora-shell-theme'
 const TYPORA_BODY_CLASS = 'typora-theme-scope'
 const TYPORA_BODY_STATE_CLASSES = [
+  'allow-file-tree-scroll',
   'active-tab-outline',
+  'html-for-mac',
+  'mac-os-11',
   'mac-os',
+  'mac-seamless-mode',
   'os-windows',
+  'pin-outline',
 ]
-const TYPORA_RUNTIME_SHELL_VARIABLES = {
-  '--sidebar-width': '325px',
-  '--title-bar-height': '78px',
-}
+const TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH = '270px'
 
 function normalizeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/')
@@ -65,8 +67,16 @@ function buildShellThemeCss(variables: Record<string, string>): string {
   return `body.${TYPORA_BODY_CLASS} { ${declarations} }`
 }
 
-export function getTyporaRuntimeShellVariables(): Record<string, string> {
-  return { ...TYPORA_RUNTIME_SHELL_VARIABLES }
+export function getTyporaRuntimeShellVariables(
+  platform = globalThis.navigator?.platform ?? '',
+  userAgent = globalThis.navigator?.userAgent ?? '',
+): Record<string, string> {
+  const isMac = getTyporaPlatformBodyClass(platform, userAgent) === 'mac-os'
+
+  return {
+    '--sidebar-width': TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH,
+    '--title-bar-height': isMac ? '28px' : '20px',
+  }
 }
 
 function getTyporaPlatformBodyClass(platform: string, userAgent: string): string | null {
@@ -92,10 +102,12 @@ export function getTyporaRuntimeBodyClasses(
   const classes = [TYPORA_BODY_CLASS]
 
   // 当前侧栏只有大纲视图，补齐 Typora 主题里常见的 outline 状态选择器。
-  if (platformClass) {
+  if (platformClass === 'mac-os') {
+    classes.push('allow-file-tree-scroll', 'html-for-mac', 'mac-os-11', 'mac-os', 'mac-seamless-mode')
+  } else if (platformClass) {
     classes.push(platformClass)
   }
-  classes.push('active-tab-outline')
+  classes.push('pin-outline', 'active-tab-outline')
 
   return classes
 }

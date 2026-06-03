@@ -81,8 +81,8 @@ describe('App sidebar resizing', () => {
   it('keeps sidebar width inside the draggable range', () => {
     const clampSidebarWidth = (AppModule as { clampSidebarWidth?: (width: number) => number }).clampSidebarWidth
 
-    expect(clampSidebarWidth?.(100)).toBe(220)
-    expect(clampSidebarWidth?.(325)).toBe(325)
+    expect(clampSidebarWidth?.(100)).toBe(180)
+    expect(clampSidebarWidth?.(270)).toBe(270)
     expect(clampSidebarWidth?.(800)).toBe(520)
   })
 
@@ -90,11 +90,25 @@ describe('App sidebar resizing', () => {
     const html = renderToStaticMarkup(<AppModule.default />)
 
     expect(html).toContain('class="sidebar-layout"')
-    expect(html).toContain('--sidebar-width:325px')
+    expect(html).toContain('--sidebar-width:270px')
     expect(html).toContain('id="typora-sidebar-resizer"')
     expect(html).toContain('class="typora-sidebar-resizer-bar"')
     expect(html).toContain('role="separator"')
-    expect(html).toContain('aria-valuemin="220"')
+    expect(html).toContain('aria-valuemin="180"')
     expect(html).toContain('aria-valuemax="520"')
+    expect(html).toContain('aria-valuenow="270"')
+  })
+
+  it('renders Typora shell classes and outline hierarchy classes', () => {
+    const html = renderToStaticMarkup(<AppModule.default />)
+
+    expect(html).toContain('id="typora-sidebar"')
+    expect(html).toContain('class="sidebar stopselect dropmenu sidebar-menu active-tab-outline open"')
+    expect(html).toContain('class="outline-list outline-content sidebar-content-content"')
+    expect(html).toContain('data-after-content="大纲内容为空"')
+    expect(html).toContain('outline-item-wrapper outline-h1 level-1 outline-item-open')
+    expect(html).toContain('outline-item-wrapper outline-h2 level-2 outline-item-signle outline-item-single')
+    expect(html).toContain('outline-item-active')
+    expect(html).toContain('outline-label outline-text outline-active')
   })
 })

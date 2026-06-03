@@ -13,10 +13,10 @@
 }
 
 .sidebar-layout {
-  --sidebar-width: 325px;
+  --sidebar-width: 270px;
   position: relative;
   width: var(--sidebar-width);
-  min-width: 220px;
+  min-width: 180px;
   max-width: 520px;
   height: 100%;
   flex: 0 0 var(--sidebar-width);
@@ -27,12 +27,14 @@
 }
 
 .sidebar-resizer {
-  position: absolute;
+  position: fixed;
   top: 0;
-  right: -4px;
-  z-index: 40;
-  width: 8px;
-  height: 100%;
+  bottom: 0;
+  left: var(--sidebar-width);
+  z-index: 99;
+  width: 10px;
+  height: auto;
+  margin-left: -5px;
   cursor: col-resize;
   display: flex;
   justify-content: center;
@@ -40,16 +42,33 @@
 }
 
 .typora-sidebar-resizer-bar {
-  width: 1px;
+  width: 3px;
   height: 100%;
   background-color: transparent;
+  opacity: 0.4;
   transition: background-color 0.15s ease;
+}
+
+.sidebar-resizer.dragging {
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin-left: 0;
+}
+
+.sidebar-resizer.dragging .typora-sidebar-resizer-bar {
+  position: absolute;
+  left: var(--sidebar-width);
+  width: 8px;
+  margin-left: -1px;
+  border-right: 2px dashed var(--accent);
 }
 
 .sidebar-resizer:hover .typora-sidebar-resizer-bar,
 .sidebar-resizer:focus-visible .typora-sidebar-resizer-bar,
 .sidebar-resizer.dragging .typora-sidebar-resizer-bar {
   background-color: var(--accent);
+  opacity: 0.8;
 }
 
 .editor-area {

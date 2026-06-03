@@ -4,7 +4,8 @@ const TYPORA_SCOPE = '.typora-theme-scope'
 const TYPORA_BODY_SCOPE = 'body.typora-theme-scope'
 const TYPORA_EDITOR_SCOPE = `${TYPORA_SCOPE} .milkdown .editor`
 const TYPORA_PREVIEW_SCOPE = `${TYPORA_SCOPE} .preview-content`
-const TYPORA_SIDEBAR_SCOPE = `${TYPORA_BODY_SCOPE} .sidebar`
+const TYPORA_SIDEBAR_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar`
+const TYPORA_RESIZER_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar-resizer`
 const TYPORA_CONTENT_SCOPES = [TYPORA_EDITOR_SCOPE, TYPORA_PREVIEW_SCOPE] as const
 const TYPORA_APP_CONTENT_SCOPES = [
   `${TYPORA_BODY_SCOPE} .milkdown .editor`,
@@ -26,8 +27,9 @@ ${TYPORA_APP_CONTENT_SCOPES.join(', ')}{box-sizing:border-box;}
 ${TYPORA_APP_CONTENT_SCOPES.map((scope) => `${scope} > *`).join(', ')}{max-width:100%;}
 ${TYPORA_BODY_SCOPE} .milkdown-editor,
 ${TYPORA_BODY_SCOPE} .preview-container{padding:var(--typora-surface-padding, 24px);background-color:var(--bg-primary, var(--theme-editor-bg));}
-${TYPORA_BODY_SCOPE} .sidebar{width:calc(var(--sidebar-width, 325px) - 15px);margin:15px 0 15px 15px;height:calc(100% - 30px);padding-top:0;background-image:linear-gradient(to top, var(--sidebar-gradient-from, rgba(245, 244, 237, 0.05)), var(--sidebar-gradient-to, rgba(245, 244, 237, 0.3)));border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));border-radius:15px;box-shadow:var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%), 0 8px 18px -14px rgb(31 30 29 / 18%));font-family:var(--font-sans);}
-${TYPORA_BODY_SCOPE} .sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
+${TYPORA_BODY_SCOPE} #typora-sidebar{width:calc(var(--sidebar-width, 270px) - 15px);margin:15px 0 15px 15px;height:calc(100% - 30px);padding-top:0;background-image:linear-gradient(to top, var(--sidebar-gradient-from, rgba(245, 244, 237, 0.05)), var(--sidebar-gradient-to, rgba(245, 244, 237, 0.3)));border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));border-radius:15px;box-shadow:var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%), 0 8px 18px -14px rgb(31 30 29 / 18%));font-family:var(--font-sans);}
+${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 270px);}
+${TYPORA_BODY_SCOPE} #typora-sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
 ${TYPORA_BODY_SCOPE} .sidebar-header{height:122px;min-height:122px;padding:0 16px;align-items:center;justify-content:center;border-bottom:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.12));}
 ${TYPORA_BODY_SCOPE} .sidebar-title-logo{display:none;}
 ${TYPORA_BODY_SCOPE} .sidebar-header h3{font-size:24px;font-weight:var(--sidebar-font-weight, 430);letter-spacing:0;color:var(--font-color);}
@@ -111,10 +113,14 @@ const PASSTHROUGH_AT_RULES = new Set(['@font-face', '@keyframes', '@-webkit-keyf
 const TYPORA_BODY_STATE_CLASSES = new Set([
   'active-tab-files',
   'active-tab-outline',
+  'allow-file-tree-scroll',
+  'html-for-mac',
+  'mac-os-11',
   'mac-os',
   'mac-seamless-mode',
   'no-collapse-outline',
   'os-windows',
+  'pin-outline',
   'ty-on-outline-filter',
   'ty-on-search',
   'ty-show-outline-filter',
@@ -260,6 +266,11 @@ function transformSelector(selector: string): string[] {
     return typoraCodeFenceSelectors
   }
 
+  const resizerSelectors = transformTyporaSidebarResizerSelector(trimmedSelector)
+  if (resizerSelectors) {
+    return resizerSelectors
+  }
+
   const sidebarSelectors = transformTyporaSidebarSelector(trimmedSelector)
   if (sidebarSelectors) {
     return sidebarSelectors
@@ -314,6 +325,29 @@ function transformSelector(selector: string): string[] {
   return [scopeSelector(trimmedSelector)]
 }
 
+function transformTyporaSidebarResizerSelector(selector: string): string[] | null {
+  if (!/(^|[^\w-])#typora-sidebar-resizer\b/.test(selector)) {
+    return null
+  }
+
+  const bodyStateSelector = extractLeadingTyporaBodyStateSelector(selector)
+  if (bodyStateSelector) {
+    const resizerSelector = bodyStateSelector.selector.replace(
+      /(^|[^\w-])#typora-sidebar-resizer\b/g,
+      (_match, prefix) => `${prefix}#typora-sidebar-resizer`,
+    )
+
+    return [`${buildTyporaBodyScope(bodyStateSelector.classes)} ${resizerSelector}`]
+  }
+
+  return [
+    selector.replace(
+      /(^|[^\w-])#typora-sidebar-resizer\b/g,
+      (_match, prefix) => `${prefix}${TYPORA_RESIZER_SCOPE}`,
+    ),
+  ]
+}
+
 function transformTyporaBodyStateSelector(selector: string): string[] | null {
   const bodyStateSelector = extractLeadingTyporaBodyStateSelector(selector)
   if (!bodyStateSelector) {
@@ -332,7 +366,7 @@ function transformTyporaSidebarSelector(selector: string): string[] | null {
   if (bodyStateSelector) {
     const sidebarSelector = bodyStateSelector.selector.replace(
       /(^|[^\w-])#typora-sidebar\b/g,
-      (_match, prefix) => `${prefix}.sidebar`,
+      (_match, prefix) => `${prefix}#typora-sidebar`,
     )
 
     return [

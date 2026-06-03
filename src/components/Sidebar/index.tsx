@@ -164,16 +164,20 @@ export const Sidebar: React.FC = () => {
     nodes.map((node) => {
       const hasChildren = node.children.length > 0
       const isCollapsed = !!collapsedIndices[node.originalIndex]
+      const isActive = node.originalIndex === 0
       const stateClass = hasChildren
         ? (isCollapsed ? 'outline-item-close' : 'outline-item-open')
-        : 'outline-item-single'
+        : 'outline-item-signle outline-item-single'
 
       return (
         <li
           key={node.originalIndex}
-          className={`outline-item-wrapper level-${node.level} ${stateClass}`}
+          className={`outline-item-wrapper outline-h${node.level} level-${node.level} ${stateClass}`}
         >
-          <div className="outline-item" onClick={() => handleHeadingClick(node.text)}>
+          <div
+            className={`outline-item${isActive ? ' outline-item-active' : ''}`}
+            onClick={() => handleHeadingClick(node.text)}
+          >
             <span
               className="outline-expander outline-arrow-container"
               onClick={(e) => {
@@ -188,7 +192,12 @@ export const Sidebar: React.FC = () => {
                 <span className="outline-arrow-spacer" />
               )}
             </span>
-            <span className="outline-label outline-text">{node.text}</span>
+            <span
+              className={`outline-label outline-text${isActive ? ' outline-active' : ''}`}
+              data-ref={`n${node.originalIndex}`}
+            >
+              {node.text}
+            </span>
           </div>
           {hasChildren && !isCollapsed && (
             <ul className="outline-children">
@@ -206,7 +215,7 @@ export const Sidebar: React.FC = () => {
       return (
         <li
           key={heading.originalIndex}
-          className={`outline-item-wrapper level-${heading.level} outline-item-single`}
+          className={`outline-item-wrapper outline-h${heading.level} level-${heading.level} outline-item-signle outline-item-single`}
           style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}
         >
           <div className="outline-item" onClick={() => handleHeadingClick(heading.text)}>
@@ -224,14 +233,16 @@ export const Sidebar: React.FC = () => {
                 <span className="outline-arrow-spacer" />
               )}
             </span>
-            <span className="outline-label outline-text">{heading.text}</span>
+            <span className="outline-label outline-text" data-ref={`n${heading.originalIndex}`}>
+              {heading.text}
+            </span>
           </div>
         </li>
       )
     })
 
   return (
-    <aside id="typora-sidebar" className="sidebar">
+    <aside id="typora-sidebar" className="sidebar stopselect dropmenu sidebar-menu active-tab-outline open" role="menu">
       <div className="sidebar-header">
         {isSearching ? (
           <div className="sidebar-search-header">
@@ -270,7 +281,11 @@ export const Sidebar: React.FC = () => {
         ) : filteredHeadings.length === 0 ? (
           <p className="sidebar-empty">无匹配结果</p>
         ) : (
-          <ul id="outline-content" className="outline-list outline-content">
+          <ul
+            id="outline-content"
+            className="outline-list outline-content sidebar-content-content"
+            data-after-content="大纲内容为空"
+          >
             {searchQuery.trim() ? renderSearchResults() : renderOutlineNodes(headingTree)}
           </ul>
         )}

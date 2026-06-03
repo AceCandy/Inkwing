@@ -72,18 +72,24 @@ export async function refreshExternalThemes(): Promise<TyporaThemeOption[]> {
 
   // 将后端返回的 Typora 包按 variant 展平为前端可直接使用的 option。
   externalThemes = packages.flatMap((pkg) =>
-    pkg.variants.map((variant) => ({
-      type: 'typora' as const,
-      id: `typora:${pkg.id}:${variant.id}`,
-      name: `${pkg.name} / ${variant.name}`,
-      packageId: pkg.id,
-      packageName: pkg.name,
-      cssFile: variant.cssFile,
-      basePath: pkg.basePath,
-    })),
+    pkg.variants
+      .filter((variant) => !isTyporaUserCssFile(variant.cssFile))
+      .map((variant) => ({
+        type: 'typora' as const,
+        id: `typora:${pkg.id}:${variant.id}`,
+        name: `${pkg.name} / ${variant.name}`,
+        packageId: pkg.id,
+        packageName: pkg.name,
+        cssFile: variant.cssFile,
+        basePath: pkg.basePath,
+      })),
   )
 
   return externalThemes
+}
+
+function isTyporaUserCssFile(cssFile: string): boolean {
+  return cssFile === 'base.user.css' || cssFile.endsWith('.user.css')
 }
 
 // 获取所有可选主题，包括内置主题和已导入的 Typora 主题变体。

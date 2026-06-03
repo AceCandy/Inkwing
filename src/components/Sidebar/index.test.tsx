@@ -27,11 +27,12 @@ describe('Sidebar', () => {
   it('renders Typora-compatible nested outline markup', () => {
     const html = renderToStaticMarkup(<Sidebar />)
 
-    expect(html).toContain('class="outline-list outline-content"')
+    expect(html).toContain('class="sidebar stopselect dropmenu sidebar-menu active-tab-outline open"')
+    expect(html).toContain('class="outline-list outline-content sidebar-content-content"')
     expect(html).toContain('class="outline-label outline-text"')
     expect(html).toContain('class="outline-children"')
     expect(html).toContain('id="sidebar-content"')
-    expect(html).toContain('class="outline-item-wrapper level-2 outline-item-open"')
-    expect(html).toContain('class="outline-item-wrapper level-3 outline-item-single"')
+    expect(html).toContain('class="outline-item-wrapper outline-h2 level-2 outline-item-open"')
+    expect(html).toContain('class="outline-item-wrapper outline-h3 level-3 outline-item-signle outline-item-single"')
   })
 })

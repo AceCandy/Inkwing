@@ -15,8 +15,9 @@ import { isRunningInTauri } from './utils/tauriRuntime'
 import { useAppLogo } from './hooks/useAppLogo'
 import './App.css'
 
-export const DEFAULT_SIDEBAR_WIDTH = 325
-export const MIN_SIDEBAR_WIDTH = 220
+export const SIDEBAR_WIDTH_STORAGE_KEY = 'app-sidebar-width'
+export const DEFAULT_SIDEBAR_WIDTH = 270
+export const MIN_SIDEBAR_WIDTH = 180
 export const MAX_SIDEBAR_WIDTH = 520
 
 export function clampSidebarWidth(width: number): number {
@@ -25,6 +26,40 @@ export function clampSidebarWidth(width: number): number {
   }
 
   return Math.round(Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, width)))
+}
+
+function getSidebarStorage(): Storage | undefined {
+  if (typeof window === 'undefined') {
+    return undefined
+  }
+
+  try {
+    return window.localStorage
+  } catch {
+    return undefined
+  }
+}
+
+export function getInitialSidebarWidth(storage = getSidebarStorage()): number {
+  try {
+    const storedWidth = storage?.getItem(SIDEBAR_WIDTH_STORAGE_KEY)
+    if (!storedWidth) {
+      return DEFAULT_SIDEBAR_WIDTH
+    }
+
+    return clampSidebarWidth(Number(storedWidth))
+  } catch {
+    return DEFAULT_SIDEBAR_WIDTH
+  }
+}
+
+function persistSidebarWidth(width: number) {
+  const storage = getSidebarStorage()
+  try {
+    storage?.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clampSidebarWidth(width)))
+  } catch {
+    // localStorage 可能在受限 WebView 中不可用，宽度拖拽本身不应因此中断。
+  }
 }
 
 function App() {
@@ -80,7 +115,7 @@ function App() {
   const [showStatMenu, setShowStatMenu] = useState(false)
 
   // 侧栏宽度需要同步给 Typora 主题变量，保证导入主题和拖拽行为使用同一套尺寸。
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
+  const [sidebarWidth, setSidebarWidth] = useState(() => getInitialSidebarWidth())
   const [isSidebarResizeActive, setIsSidebarResizeActive] = useState(false)
   const appBodyRef = useRef<HTMLDivElement>(null)
   const isSidebarResizing = useRef(false)
@@ -190,9 +225,12 @@ function App() {
   }) as React.CSSProperties, [sidebarWidth])
 
   useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`)
     document.body.style.setProperty('--sidebar-width', `${sidebarWidth}px`)
+    persistSidebarWidth(sidebarWidth)
 
     return () => {
+      document.documentElement.style.removeProperty('--sidebar-width')
       document.body.style.removeProperty('--sidebar-width')
     }
   }, [sidebarWidth])

@@ -121,7 +121,7 @@ describe('adaptTyporaCss', () => {
 
   it('drops Typora-only shell selectors instead of leaking them globally', () => {
     const css = [
-      '#typora-sidebar { background: red; }',
+      '#typora-quick-open { background: red; }',
       '.ty-tooltip.shown { display: none; }',
       '.CodeMirror { font-size: 14px; }',
       '.CodeMirror-scroll { overflow: auto; }',
@@ -133,7 +133,7 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).not.toContain('#typora-sidebar')
+    expect(result).not.toContain('#typora-quick-open')
     expect(result).not.toContain('.ty-tooltip')
     expect(result).not.toContain('.CodeMirror')
     expect(result).toContain('.typora-theme-scope .milkdown .editor p')
@@ -216,9 +216,10 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope .sidebar{')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar{')
     expect(result).toContain('border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));')
-    expect(result).toContain('width:calc(var(--sidebar-width, 325px) - 15px);')
+    expect(result).toContain('width:calc(var(--sidebar-width, 270px) - 15px);')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 270px);}')
     expect(result).toContain('body.typora-theme-scope .sidebar-title-logo{display:none;}')
     expect(result).toContain('body.typora-theme-scope .sidebar-header h3{font-size:24px;')
     expect(result.trim().endsWith('}')).toBe(true)
@@ -251,7 +252,7 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('body.typora-theme-scope .outline-content li .outline-label')
   })
 
-  it('maps Typora sidebar shell selectors onto Inkwing sidebar', () => {
+  it('keeps Typora sidebar shell selectors scoped to the real sidebar id', () => {
     const css = [
       '#typora-sidebar { border-radius: 15px; }',
       '#typora-sidebar:hover { box-shadow: var(--box-shadow-userinput-hover); }',
@@ -263,10 +264,29 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toMatch(/body\.typora-theme-scope \.sidebar\{\s*border-radius: 15px;/)
-    expect(result).toMatch(/body\.typora-theme-scope \.sidebar:hover\{\s*box-shadow: var\(--box-shadow-userinput-hover\);/)
-    expect(result).toMatch(/body\.typora-theme-scope \.sidebar input\{\s*color: var\(--text-secondary\);/)
-    expect(result).not.toContain('#typora-sidebar')
+    expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar\{\s*border-radius: 15px;/)
+    expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar:hover\{\s*box-shadow: var\(--box-shadow-userinput-hover\);/)
+    expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar input\{\s*color: var\(--text-secondary\);/)
+    expect(result).not.toMatch(/body\.typora-theme-scope \.sidebar\{/)
+  })
+
+  it('keeps Typora sidebar resizer selectors mapped to the app resizer element', () => {
+    const css = [
+      '#typora-sidebar-resizer:not(.dragging) .typora-sidebar-resizer-bar:hover { background: none !important; }',
+      '.pin-outline #typora-sidebar-resizer { display: block; }',
+    ].join('\n')
+
+    const result = adaptTyporaCss(css, {
+      assetBasePath: '/app/themes/claude',
+      toAssetUrl,
+    })
+
+    expect(result).toContain(
+      'body.typora-theme-scope #typora-sidebar-resizer:not(.dragging) .typora-sidebar-resizer-bar:hover{',
+    )
+    expect(result).toContain('body.typora-theme-scope.pin-outline #typora-sidebar-resizer{')
+    expect(result).not.toContain('.sidebar-resizer:not')
+    expect(result).not.toContain('.typora-theme-scope .pin-outline')
   })
 
   it('maps Typora outline content id selectors onto Inkwing outline content', () => {
@@ -296,8 +316,8 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope.mac-os .sidebar{')
-    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode .sidebar:hover{')
+    expect(result).toContain('body.typora-theme-scope.mac-os #typora-sidebar{')
+    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode #typora-sidebar:hover{')
     expect(result).not.toContain('.mac-os body.typora-theme-scope')
     expect(result).not.toContain('.mac-seamless-mode body.typora-theme-scope')
   })

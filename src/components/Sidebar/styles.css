@@ -204,7 +204,7 @@
   opacity: 0.85;
 }
 
-body.typora-theme-scope .sidebar {
+body.typora-theme-scope #typora-sidebar {
   margin: 15px 0 15px 15px;
   height: calc(100% - 30px);
   padding-top: 0;
@@ -219,12 +219,12 @@ body.typora-theme-scope .sidebar {
   font-family: var(--font-sans);
 }
 
-body.typora-theme-scope.mac-os .sidebar {
+body.typora-theme-scope.mac-os #typora-sidebar {
   margin-top: calc(var(--title-bar-height, 78px) + 15px);
   height: calc(100% - var(--title-bar-height, 78px) - 30px);
 }
 
-body.typora-theme-scope .sidebar:hover {
+body.typora-theme-scope #typora-sidebar:hover {
   box-shadow: var(--box-shadow-userinput-hover, var(--box-shadow-userinput, none));
 }
 
