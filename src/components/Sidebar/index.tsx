@@ -199,11 +199,9 @@ export const Sidebar: React.FC = () => {
               {node.text}
             </span>
           </div>
-          {hasChildren && !isCollapsed && (
-            <ul className="outline-children">
-              {renderOutlineNodes(node.children)}
-            </ul>
-          )}
+          <ul className="outline-children">
+            {hasChildren && !isCollapsed ? renderOutlineNodes(node.children) : null}
+          </ul>
         </li>
       )
     })

@@ -218,10 +218,10 @@ describe('adaptTyporaCss', () => {
 
     expect(result).toContain('body.typora-theme-scope #typora-sidebar{')
     expect(result).toContain('border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));')
-    expect(result).toContain('width:calc(var(--sidebar-width, 270px) - 15px);')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 270px);}')
-    expect(result).toContain('body.typora-theme-scope .sidebar-title-logo{display:none;}')
-    expect(result).toContain('body.typora-theme-scope .sidebar-header h3{font-size:24px;')
+    expect(result).toContain('width:calc(var(--sidebar-width, 245px) - 15px);')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-header{display:none;}')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-content{position:absolute;top:24px;right:0;bottom:15px;left:0;')
     expect(result.trim().endsWith('}')).toBe(true)
   })
 

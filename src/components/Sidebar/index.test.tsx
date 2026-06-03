@@ -34,5 +34,6 @@ describe('Sidebar', () => {
     expect(html).toContain('id="sidebar-content"')
     expect(html).toContain('class="outline-item-wrapper outline-h2 level-2 outline-item-open"')
     expect(html).toContain('class="outline-item-wrapper outline-h3 level-3 outline-item-signle outline-item-single"')
+    expect(html).toContain('<ul class="outline-children"></ul>')
   })
 })

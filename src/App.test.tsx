@@ -82,21 +82,32 @@ describe('App sidebar resizing', () => {
     const clampSidebarWidth = (AppModule as { clampSidebarWidth?: (width: number) => number }).clampSidebarWidth
 
     expect(clampSidebarWidth?.(100)).toBe(180)
-    expect(clampSidebarWidth?.(270)).toBe(270)
+    expect(clampSidebarWidth?.(245)).toBe(245)
     expect(clampSidebarWidth?.(800)).toBe(520)
+  })
+
+  it('migrates the old default sidebar width to the Typora skeleton default', () => {
+    const getInitialSidebarWidth = (
+      AppModule as { getInitialSidebarWidth?: (storage: Storage) => number }
+    ).getInitialSidebarWidth
+    const storage = {
+      getItem: vi.fn(() => '270'),
+    } as unknown as Storage
+
+    expect(getInitialSidebarWidth?.(storage)).toBe(245)
   })
 
   it('renders a Typora-compatible sidebar resizer with width variables', () => {
     const html = renderToStaticMarkup(<AppModule.default />)
 
     expect(html).toContain('class="sidebar-layout"')
-    expect(html).toContain('--sidebar-width:270px')
+    expect(html).toContain('--sidebar-width:245px')
     expect(html).toContain('id="typora-sidebar-resizer"')
     expect(html).toContain('class="typora-sidebar-resizer-bar"')
     expect(html).toContain('role="separator"')
     expect(html).toContain('aria-valuemin="180"')
     expect(html).toContain('aria-valuemax="520"')
-    expect(html).toContain('aria-valuenow="270"')
+    expect(html).toContain('aria-valuenow="245"')
   })
 
   it('renders Typora shell classes and outline hierarchy classes', () => {

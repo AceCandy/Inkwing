@@ -205,6 +205,7 @@
 }
 
 body.typora-theme-scope #typora-sidebar {
+  position: relative;
   margin: 15px 0 15px 15px;
   height: calc(100% - 30px);
   padding-top: 0;
@@ -228,13 +229,8 @@ body.typora-theme-scope #typora-sidebar:hover {
   box-shadow: var(--box-shadow-userinput-hover, var(--box-shadow-userinput, none));
 }
 
-body.typora-theme-scope .sidebar-header {
-  height: 122px;
-  min-height: 122px;
-  padding: 0 16px;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 0.5px solid var(--border-color-15, var(--border));
+body.typora-theme-scope #typora-sidebar .sidebar-header {
+  display: none;
 }
 
 body.typora-theme-scope .sidebar-title-logo {
@@ -249,6 +245,18 @@ body.typora-theme-scope .sidebar-header h3 {
 }
 
 body.typora-theme-scope .sidebar-content {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  bottom: 15px;
+  left: 0;
   padding: 0;
+  overflow: auto;
   min-height: 0;
+}
+
+body.typora-theme-scope .outline-content {
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
 }

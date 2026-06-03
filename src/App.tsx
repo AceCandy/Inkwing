@@ -16,7 +16,8 @@ import { useAppLogo } from './hooks/useAppLogo'
 import './App.css'
 
 export const SIDEBAR_WIDTH_STORAGE_KEY = 'app-sidebar-width'
-export const DEFAULT_SIDEBAR_WIDTH = 270
+export const DEFAULT_SIDEBAR_WIDTH = 245
+const LEGACY_DEFAULT_SIDEBAR_WIDTH = 270
 export const MIN_SIDEBAR_WIDTH = 180
 export const MAX_SIDEBAR_WIDTH = 520
 
@@ -47,7 +48,12 @@ export function getInitialSidebarWidth(storage = getSidebarStorage()): number {
       return DEFAULT_SIDEBAR_WIDTH
     }
 
-    return clampSidebarWidth(Number(storedWidth))
+    const parsedWidth = Number(storedWidth)
+    if (parsedWidth === LEGACY_DEFAULT_SIDEBAR_WIDTH) {
+      return DEFAULT_SIDEBAR_WIDTH
+    }
+
+    return clampSidebarWidth(parsedWidth)
   } catch {
     return DEFAULT_SIDEBAR_WIDTH
   }

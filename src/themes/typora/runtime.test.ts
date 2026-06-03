@@ -30,7 +30,7 @@ describe('getTyporaRuntimeShellVariables', () => {
   it('provides macOS Typora shell variables that imported themes expect from the host app', () => {
     expect(getTyporaRuntimeShellVariables('MacIntel', 'Mozilla/5.0 (Macintosh)')).toEqual(
       expect.objectContaining({
-        '--sidebar-width': '270px',
+        '--sidebar-width': '245px',
         '--title-bar-height': '28px',
       }),
     )

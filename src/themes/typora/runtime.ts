@@ -17,7 +17,7 @@ const TYPORA_BODY_STATE_CLASSES = [
   'os-windows',
   'pin-outline',
 ]
-const TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH = '270px'
+const TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH = '245px'
 
 function normalizeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/')

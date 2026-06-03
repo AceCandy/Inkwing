@@ -13,7 +13,7 @@
 }
 
 .sidebar-layout {
-  --sidebar-width: 270px;
+  --sidebar-width: 245px;
   position: relative;
   width: var(--sidebar-width);
   min-width: 180px;
