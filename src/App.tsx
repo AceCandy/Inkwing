@@ -14,6 +14,18 @@ import { applyThemeOption, getThemeOption, refreshExternalThemes } from './theme
 import { isRunningInTauri } from './utils/tauriRuntime'
 import './App.css'
 
+export const DEFAULT_SIDEBAR_WIDTH = 325
+export const MIN_SIDEBAR_WIDTH = 220
+export const MAX_SIDEBAR_WIDTH = 520
+
+export function clampSidebarWidth(width: number): number {
+  if (!Number.isFinite(width)) {
+    return DEFAULT_SIDEBAR_WIDTH
+  }
+
+  return Math.round(Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, width)))
+}
+
 function App() {
   const {
     filePath,
@@ -63,6 +75,12 @@ function App() {
   // 右上角字数/阅读时间等统计显示状态
   const [activeStat, setActiveStat] = useState<'words' | 'chars' | 'lines' | 'readTime'>('words')
   const [showStatMenu, setShowStatMenu] = useState(false)
+
+  // 侧栏宽度需要同步给 Typora 主题变量，保证导入主题和拖拽行为使用同一套尺寸。
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
+  const [isSidebarResizeActive, setIsSidebarResizeActive] = useState(false)
+  const appBodyRef = useRef<HTMLDivElement>(null)
+  const isSidebarResizing = useRef(false)
 
   useEffect(() => {
     setTempFileName(fileName)
@@ -164,6 +182,18 @@ function App() {
 
   const hasFile = filePath !== null
 
+  const sidebarLayoutStyle = useMemo(() => ({
+    '--sidebar-width': `${sidebarWidth}px`,
+  }) as React.CSSProperties, [sidebarWidth])
+
+  useEffect(() => {
+    document.body.style.setProperty('--sidebar-width', `${sidebarWidth}px`)
+
+    return () => {
+      document.body.style.removeProperty('--sidebar-width')
+    }
+  }, [sidebarWidth])
+
   // 解析 URL 参数，加载文件
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -253,6 +283,24 @@ function App() {
   const splitViewRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
 
+  const handleSidebarResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isSidebarResizing.current = true
+    setIsSidebarResizeActive(true)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
+
+  const handleSidebarResizeKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return
+    }
+
+    e.preventDefault()
+    const delta = e.key === 'ArrowRight' ? 12 : -12
+    setSidebarWidth((currentWidth) => clampSidebarWidth(currentWidth + delta))
+  }, [])
+
   const handleDividerMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     isDragging.current = true
@@ -279,6 +327,31 @@ function App() {
         document.body.style.userSelect = ''
       }
     }
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isSidebarResizing.current || !appBodyRef.current) return
+
+      const rect = appBodyRef.current.getBoundingClientRect()
+      setSidebarWidth(clampSidebarWidth(e.clientX - rect.left))
+    }
+
+    const handleMouseUp = () => {
+      if (isSidebarResizing.current) {
+        isSidebarResizing.current = false
+        setIsSidebarResizeActive(false)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+    }
+
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
     return () => {
@@ -328,15 +401,33 @@ function App() {
 
   return (
     <div className="app">
-      <div className="app-body">
-        <Sidebar />
+      <div className="app-body" ref={appBodyRef}>
+        {showSidebar && (
+          <div className="sidebar-layout" style={sidebarLayoutStyle}>
+            <Sidebar />
+            <div
+              id="typora-sidebar-resizer"
+              className={`sidebar-resizer ${isSidebarResizeActive ? 'dragging' : ''}`}
+              role="separator"
+              aria-orientation="vertical"
+              aria-valuemin={MIN_SIDEBAR_WIDTH}
+              aria-valuemax={MAX_SIDEBAR_WIDTH}
+              aria-valuenow={sidebarWidth}
+              tabIndex={0}
+              onMouseDown={handleSidebarResizeMouseDown}
+              onKeyDown={handleSidebarResizeKeyDown}
+            >
+              <div className="typora-sidebar-resizer-bar" />
+            </div>
+          </div>
+        )}
         <main className="editor-area">
           {/* 顶部标题栏/字数统计（Typora 风格） */}
           <div className={`editor-header-bar ${!showSidebar ? 'has-native-buttons' : ''}`} data-tauri-drag-region="true">
             <div
               className="header-center"
               style={{
-                left: showSidebar ? 'calc(50% - 130px)' : '50%'
+                left: showSidebar ? `calc(50% - ${sidebarWidth / 2}px)` : '50%'
               }}
             >
               {isEditingName ? (

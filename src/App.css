@@ -12,6 +12,46 @@
   overflow: hidden;
 }
 
+.sidebar-layout {
+  --sidebar-width: 325px;
+  position: relative;
+  width: var(--sidebar-width);
+  min-width: 220px;
+  max-width: 520px;
+  height: 100%;
+  flex: 0 0 var(--sidebar-width);
+}
+
+.sidebar-layout .sidebar {
+  width: 100%;
+}
+
+.sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  z-index: 40;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  display: flex;
+  justify-content: center;
+  outline: none;
+}
+
+.typora-sidebar-resizer-bar {
+  width: 1px;
+  height: 100%;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-resizer:hover .typora-sidebar-resizer-bar,
+.sidebar-resizer:focus-visible .typora-sidebar-resizer-bar,
+.sidebar-resizer.dragging .typora-sidebar-resizer-bar {
+  background-color: var(--accent);
+}
+
 .editor-area {
   flex: 1;
   overflow: hidden;
