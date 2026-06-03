@@ -7,6 +7,15 @@ import type { TyporaThemeOption } from './types'
 const ACTIVE_TYPORA_THEME_STYLE_ID = 'inkwing-active-typora-theme'
 const ACTIVE_TYPORA_SHELL_STYLE_ID = 'inkwing-active-typora-shell-theme'
 const TYPORA_BODY_CLASS = 'typora-theme-scope'
+const TYPORA_BODY_STATE_CLASSES = [
+  'active-tab-outline',
+  'mac-os',
+  'os-windows',
+]
+const TYPORA_RUNTIME_SHELL_VARIABLES = {
+  '--sidebar-width': '325px',
+  '--title-bar-height': '78px',
+}
 
 function normalizeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/')
@@ -41,7 +50,11 @@ function setStyleContent(id: string, content: string) {
 }
 
 function buildShellThemeCss(variables: Record<string, string>): string {
-  const declarations = Object.entries(variables)
+  const shellVariables = {
+    ...getTyporaRuntimeShellVariables(),
+    ...variables,
+  }
+  const declarations = Object.entries(shellVariables)
     .map(([name, value]) => `${name}: ${value};`)
     .join(' ')
 
@@ -52,8 +65,43 @@ function buildShellThemeCss(variables: Record<string, string>): string {
   return `body.${TYPORA_BODY_CLASS} { ${declarations} }`
 }
 
+export function getTyporaRuntimeShellVariables(): Record<string, string> {
+  return { ...TYPORA_RUNTIME_SHELL_VARIABLES }
+}
+
+function getTyporaPlatformBodyClass(platform: string, userAgent: string): string | null {
+  const platformValue = platform.toLowerCase()
+  const userAgentValue = userAgent.toLowerCase()
+
+  if (platformValue.includes('mac') || userAgentValue.includes('macintosh')) {
+    return 'mac-os'
+  }
+
+  if (platformValue.includes('win') || userAgentValue.includes('windows')) {
+    return 'os-windows'
+  }
+
+  return null
+}
+
+export function getTyporaRuntimeBodyClasses(
+  platform = globalThis.navigator?.platform ?? '',
+  userAgent = globalThis.navigator?.userAgent ?? '',
+): string[] {
+  const platformClass = getTyporaPlatformBodyClass(platform, userAgent)
+  const classes = [TYPORA_BODY_CLASS]
+
+  // 当前侧栏只有大纲视图，补齐 Typora 主题里常见的 outline 状态选择器。
+  if (platformClass) {
+    classes.push(platformClass)
+  }
+  classes.push('active-tab-outline')
+
+  return classes
+}
+
 export function clearTyporaTheme() {
-  document.body?.classList.remove(TYPORA_BODY_CLASS)
+  document.body?.classList.remove(TYPORA_BODY_CLASS, ...TYPORA_BODY_STATE_CLASSES)
   document.getElementById(ACTIVE_TYPORA_THEME_STYLE_ID)?.remove()
   document.getElementById(ACTIVE_TYPORA_SHELL_STYLE_ID)?.remove()
 }
@@ -77,7 +125,7 @@ export async function applyTyporaTheme(theme: TyporaThemeOption) {
   try {
     // 所有内容都准备好后，再清空旧状态并应用新主题。
     clearTyporaTheme()
-    body.classList.add(TYPORA_BODY_CLASS)
+    body.classList.add(...getTyporaRuntimeBodyClasses())
     setStyleContent(ACTIVE_TYPORA_THEME_STYLE_ID, adaptedCss)
     setStyleContent(ACTIVE_TYPORA_SHELL_STYLE_ID, shellThemeCss)
   } catch (error) {

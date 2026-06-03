@@ -33,6 +33,9 @@ const translations: Record<string, Translations> = {
     'settings.shortcuts': '快捷键',
     'settings.language': '语言',
     'settings.theme': '主题',
+    'settings.importTyporaTheme': '导入 Typora 主题文件夹',
+    'settings.importingTheme': '导入中...',
+    'settings.importThemeSuccess': 'Typora 主题导入成功',
 
     // 快捷键
     'shortcuts.newFile': '新建文件',
@@ -74,6 +77,9 @@ const translations: Record<string, Translations> = {
     'settings.shortcuts': 'Shortcuts',
     'settings.language': 'Language',
     'settings.theme': 'Theme',
+    'settings.importTyporaTheme': 'Import Typora Theme Folder',
+    'settings.importingTheme': 'Importing...',
+    'settings.importThemeSuccess': 'Typora theme imported successfully',
 
     // Shortcuts
     'shortcuts.newFile': 'New File',

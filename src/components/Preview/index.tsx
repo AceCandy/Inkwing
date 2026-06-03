@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 import katex from 'katex'
+import { Renderer, marked } from 'marked'
 import { useEditorStore } from '../../stores/editorStore'
+import { replaceEmojiShortcodes } from '../Editor/typoraDecorations'
 import './styles.css'
 
 /**
@@ -40,6 +42,36 @@ function renderCodeFence(markdownFence: string): string {
   return `<pre class="md-fences"${langAttr}><code>${escapeHtml(code.trim())}</code></pre>`
 }
 
+function protectCode(markdown: string): { markdown: string; restore: (value: string) => string } {
+  const placeholders: string[] = []
+  let nextMarkdown = markdown.replace(/```[\s\S]*?```/g, (match) => {
+    const placeholder = `%%CODE_BLOCK_${placeholders.length}%%`
+    placeholders.push(match)
+    return placeholder
+  })
+
+  nextMarkdown = nextMarkdown.replace(/`([^`]+)`/g, (match) => {
+    const placeholder = `%%CODE_INLINE_${placeholders.length}%%`
+    placeholders.push(match)
+    return placeholder
+  })
+
+  return {
+    markdown: nextMarkdown,
+    restore: (value: string) => placeholders.reduce(
+      (result, code, index) => result.replace(`%%CODE_${code.startsWith('```') ? 'BLOCK' : 'INLINE'}_${index}%%`, code),
+      value,
+    ),
+  }
+}
+
+function applyTyporaInlineSyntax(markdown: string): string {
+  return replaceEmojiShortcodes(markdown)
+    .replace(/==([^=\n][\s\S]*?[^=\n])==/g, (_match, text) => `<mark>${escapeHtml(text)}</mark>`)
+    .replace(/(?<!~)~([^~\s][^~\n]*?)~(?!~)/g, (_match, text) => `<sub>${escapeHtml(text)}</sub>`)
+    .replace(/\^([^\^\s][^\^\n]*?)\^/g, (_match, text) => `<sup>${escapeHtml(text)}</sup>`)
+}
+
 // 简易 Markdown 转 HTML（支持数学公式）
 export function simpleMarkdownToHTML(markdown: string): string {
   // 占位符映射，保护数学公式不被其他规则破坏
@@ -63,70 +95,23 @@ export function simpleMarkdownToHTML(markdown: string): string {
     return html
   }
 
-  // 先保护代码块
-  const codePlaceholders: string[] = []
-  let html = markdown.replace(/```[\s\S]*?```/g, (match) => {
-    const placeholder = `%%CODE_BLOCK_${codePlaceholders.length}%%`
-    codePlaceholders.push(renderCodeFence(match))
-    return placeholder
-  })
+  const protectedCode = protectCode(markdown)
+  const preparedMarkdown = protectedCode.restore(applyTyporaInlineSyntax(protectMath(protectedCode.markdown)))
+  const renderer = new Renderer()
+  renderer.code = (token) => {
+    const language = token.lang?.trim() ?? ''
+    const langAttr = language ? ` lang="${escapeAttribute(language)}"` : ''
+    return `<pre class="md-fences"${langAttr}><code>${escapeHtml(token.text.trim())}</code></pre>`
+  }
 
-  // 保护行内代码
-  html = html.replace(/`([^`]+)`/g, (_match, code) => {
-    const placeholder = `%%CODE_INLINE_${codePlaceholders.length}%%`
-    codePlaceholders.push(`<code>${escapeHtml(code)}</code>`)
-    return placeholder
-  })
+  let html = marked.parse(preparedMarkdown, {
+    async: false,
+    gfm: true,
+    renderer,
+  }) as string
 
-  // 保护数学公式
-  html = protectMath(html)
-
-  // Markdown 转换
-  html = html
-    // 标题
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    // 粗体和斜体
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // 链接
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-    // 图片
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
-    // 引用块
-    .replace(/^\> (.*$)/gim, '<blockquote><p>$1</p></blockquote>')
-    // 分割线
-    .replace(/^---$/gim, '<hr />')
-    // 无序列表
-    .replace(/^\s*[\-\*]\s+(.*$)/gim, '<li>$1</li>')
-    // 有序列表
-    .replace(/^\s*\d+\.\s+(.*$)/gim, '<li>$1</li>')
-    // 段落
-    .replace(/\n\n/g, '</p><p>')
-    // 换行
-    .replace(/\n/g, '<br />')
-
-  // 包装在段落中
-  html = `<p>${html}</p>`
-
-  // 清理空段落和嵌套标签
-  html = html.replace(/<p><\/p>/g, '')
-  html = html.replace(/<p>(<h[1-6]>)/g, '$1')
-  html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<hr\s*\/?>)/g, '$1')
-  html = html.replace(/(<hr\s*\/?>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<blockquote>)/g, '$1')
-  html = html.replace(/(<\/blockquote>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<div class="math-block">)/g, '$1')
-  html = html.replace(/(<\/div>)<\/p>/g, '$1')
-
-  // 恢复占位符
-  codePlaceholders.forEach((code, index) => {
-    html = html.replace(`%%CODE_BLOCK_${index}%%`, code)
-    html = html.replace(`%%CODE_INLINE_${index}%%`, code)
-  })
   mathPlaceholders.forEach((math, index) => {
+    html = html.replace(`<p>%%MATH_BLOCK_${index}%%</p>`, math)
     html = html.replace(`%%MATH_BLOCK_${index}%%`, math)
     html = html.replace(`%%MATH_INLINE_${index}%%`, math)
   })

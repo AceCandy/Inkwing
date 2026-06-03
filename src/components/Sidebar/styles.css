@@ -32,6 +32,18 @@
   position: relative;
 }
 
+.sidebar-title-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-title-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .sidebar-header-search-btn {
   position: absolute;
   right: 0;
@@ -105,8 +117,21 @@
   text-align: center;
 }
 
-.outline-list {
+.outline-list,
+.outline-children {
   list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.outline-children {
+  margin-left: 12px;
+}
+
+.outline-item-wrapper {
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 .outline-item {
@@ -156,25 +181,74 @@
 }
 
 /* 用字体样式区分大纲内容的层级 */
-.outline-item.level-1 .outline-text {
+.outline-item-wrapper.level-1 > .outline-item .outline-text {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-primary);
 }
 
-.outline-item.level-2 .outline-text {
+.outline-item-wrapper.level-2 > .outline-item .outline-text {
   font-weight: 500;
   font-size: 0.85rem;
   color: var(--text-primary);
   opacity: 0.95;
 }
 
-.outline-item.level-3 .outline-text,
-.outline-item.level-4 .outline-text,
-.outline-item.level-5 .outline-text,
-.outline-item.level-6 .outline-text {
+.outline-item-wrapper.level-3 > .outline-item .outline-text,
+.outline-item-wrapper.level-4 > .outline-item .outline-text,
+.outline-item-wrapper.level-5 > .outline-item .outline-text,
+.outline-item-wrapper.level-6 > .outline-item .outline-text {
   font-weight: 400;
   font-size: 0.8rem;
   color: var(--text-secondary);
   opacity: 0.85;
+}
+
+body.typora-theme-scope .sidebar {
+  margin: 15px 0 15px 15px;
+  height: calc(100% - 30px);
+  padding-top: 0;
+  background-image: linear-gradient(
+    to top,
+    var(--sidebar-gradient-from, transparent),
+    var(--sidebar-gradient-to, transparent)
+  );
+  border: 1px solid var(--border-color-15, var(--border));
+  border-radius: 15px;
+  box-shadow: var(--box-shadow-userinput, none);
+  font-family: var(--font-sans);
+}
+
+body.typora-theme-scope.mac-os .sidebar {
+  margin-top: calc(var(--title-bar-height, 78px) + 15px);
+  height: calc(100% - var(--title-bar-height, 78px) - 30px);
+}
+
+body.typora-theme-scope .sidebar:hover {
+  box-shadow: var(--box-shadow-userinput-hover, var(--box-shadow-userinput, none));
+}
+
+body.typora-theme-scope .sidebar-header {
+  height: 122px;
+  min-height: 122px;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 0.5px solid var(--border-color-15, var(--border));
+}
+
+body.typora-theme-scope .sidebar-title-logo {
+  display: none;
+}
+
+body.typora-theme-scope .sidebar-header h3 {
+  font-size: 24px;
+  font-weight: var(--sidebar-font-weight, 430);
+  letter-spacing: 0;
+  color: var(--font-color, var(--text-primary));
+}
+
+body.typora-theme-scope .sidebar-content {
+  padding: 0;
+  min-height: 0;
 }

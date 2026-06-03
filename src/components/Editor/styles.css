@@ -251,6 +251,15 @@
   color: var(--theme-accent, #89b4fa);
 }
 
+.milkdown .editor .typora-emoji-shortcode-source {
+  display: none;
+}
+
+.milkdown .editor .typora-emoji-shortcode {
+  display: inline;
+  font-family: var(--font-sans);
+}
+
 /* 选中文本高亮 */
 .milkdown .editor ::selection {
   background-color: var(--theme-accent, #89b4fa);

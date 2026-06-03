@@ -33,6 +33,8 @@ const localStorageStub = {
 describe('SettingsModal', () => {
   beforeEach(() => {
     vi.mocked(invoke).mockResolvedValue([])
+    localStorageStub.getItem.mockReturnValue('zh')
+    localStorageStub.setItem.mockClear()
 
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
@@ -50,5 +52,14 @@ describe('SettingsModal', () => {
 
     expect(html).toContain('导入 Typora 主题文件夹')
     expect(html).toContain('主题加载失败')
+  })
+
+  it('renders Typora folder import control in English', () => {
+    localStorageStub.getItem.mockReturnValue('en')
+
+    const html = renderToStaticMarkup(<SettingsModal />)
+
+    expect(html).toContain('Import Typora Theme Folder')
+    expect(html).not.toContain('导入 Typora 主题文件夹')
   })
 })

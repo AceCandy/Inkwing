@@ -150,6 +150,17 @@
   gap: 8px;
 }
 
+.welcome-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+  transition: transform 0.3s ease;
+}
+
+.welcome-logo:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
 .welcome-title {
   font-size: 2rem;
   font-weight: 300;

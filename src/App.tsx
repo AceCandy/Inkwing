@@ -12,6 +12,7 @@ import { useAutoSave } from './hooks/useAutoSave'
 import { useLanguage } from './i18n'
 import { applyThemeOption, getThemeOption, refreshExternalThemes } from './themes'
 import { isRunningInTauri } from './utils/tauriRuntime'
+import { useAppLogo } from './hooks/useAppLogo'
 import './App.css'
 
 export const DEFAULT_SIDEBAR_WIDTH = 325
@@ -41,6 +42,8 @@ function App() {
     currentTheme,
     setThemeError,
   } = useEditorStore()
+
+  const appLogo = useAppLogo()
 
   useEffect(() => {
     let cancelled = false
@@ -367,6 +370,7 @@ function App() {
         <main className="editor-area">
           <div className="welcome-screen">
             <div className="welcome-content">
+              <img src={appLogo} alt="Inkwing" className="welcome-logo" />
               <h1 className="welcome-title">{t('welcome.title')}</h1>
               <p className="welcome-subtitle">{t('welcome.subtitle')}</p>
               <div className="welcome-actions">

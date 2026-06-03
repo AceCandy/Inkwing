@@ -26,6 +26,9 @@ src-tauri/gen/schemas/
 # Local planning artifacts
 docs/superpowers/
 
+# Local verification artifacts
+/sidebar-*-verification.png
+
 # Logs
 *.log
 npm-debug.log*

@@ -10,12 +10,14 @@ import { importTyporaTheme } from '../../themes/typora/api'
 import { isTyporaThemeOption } from '../../themes/typora/types'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { useLanguage } from '../../i18n'
+import { useAppLogo } from '../../hooks/useAppLogo'
 import './styles.css'
 
 type TabId = 'interface' | 'shortcuts'
 
 export const SettingsModal: React.FC = () => {
   const { currentTheme, setTheme, setShowSettings, themeError } = useEditorStore()
+  const logoSmall = useAppLogo()
   const { modifierKey, shortcuts } = useKeyboardShortcuts()
   const [themes, setThemes] = useState<ThemeOption[]>([])
   const [importMessage, setImportMessage] = useState<string | null>(null)
@@ -72,7 +74,7 @@ export const SettingsModal: React.FC = () => {
       await importTyporaTheme(selected)
       await refreshExternalThemes()
       setThemes(getAllThemes())
-      setImportMessage('Typora 主题导入成功')
+      setImportMessage(t('settings.importThemeSuccess'))
     } catch (err) {
       setImportMessage(err instanceof Error ? err.message : String(err))
     } finally {
@@ -98,7 +100,10 @@ export const SettingsModal: React.FC = () => {
     <div className="settings-overlay" onClick={handleOverlayClick}>
       <div className="settings-modal">
         <div className="settings-header">
-          <h2>{t('settings.title')}</h2>
+          <div className="settings-title-container">
+            <img src={logoSmall} alt="Logo" className="settings-title-logo" />
+            <h2>{t('settings.title')}</h2>
+          </div>
           <button className="settings-close-btn" onClick={handleClose}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -150,7 +155,7 @@ export const SettingsModal: React.FC = () => {
                     onClick={handleImportTyporaTheme}
                     disabled={isImportingTheme}
                   >
-                    {isImportingTheme ? '导入中...' : '导入 Typora 主题文件夹'}
+                    {isImportingTheme ? t('settings.importingTheme') : t('settings.importTyporaTheme')}
                   </button>
                   {importMessage && <span className="theme-import-message">{importMessage}</span>}
                   {themeError && <span className="theme-import-message error">{themeError}</span>}

@@ -2,6 +2,24 @@ import { create } from 'zustand'
 
 export type EditorMode = 'wysiwyg' | 'split'
 
+const APP_THEME_STORAGE_KEY = 'app-theme'
+
+function getStoredTheme(): string {
+  try {
+    return localStorage.getItem(APP_THEME_STORAGE_KEY) || 'default'
+  } catch {
+    return 'default'
+  }
+}
+
+function persistTheme(theme: string) {
+  try {
+    localStorage.setItem(APP_THEME_STORAGE_KEY, theme)
+  } catch {
+    // localStorage 不可用时只保留当前运行态，避免阻断编辑器使用。
+  }
+}
+
 interface EditorState {
   // 单文档状态
   filePath: string | null
@@ -57,7 +75,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   showSidebar: true,
   showLineNumbers: true,
 
-  currentTheme: 'default',
+  currentTheme: getStoredTheme(),
   themeError: null,
 
   showSettings: false,
@@ -111,7 +129,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   setMode: (mode) => set({ mode }),
   toggleSidebar: () => set((state) => ({ showSidebar: !state.showSidebar })),
   toggleLineNumbers: () => set((state) => ({ showLineNumbers: !state.showLineNumbers })),
-  setTheme: (theme) => set({ currentTheme: theme }),
+  setTheme: (theme) => {
+    persistTheme(theme)
+    set({ currentTheme: theme })
+  },
   setThemeError: (themeError) => set({ themeError }),
   setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
   setIsSaving: (saving) => set({ isSaving: saving }),

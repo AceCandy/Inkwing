@@ -7,6 +7,7 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener'
 import { prism } from '@milkdown/plugin-prism'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react'
 import { useEditorStore } from '../../stores/editorStore'
+import { typoraEmojiDecorationPlugin } from './typoraDecorations'
 import './styles.css'
 
 // 编辑器内容组件
@@ -29,6 +30,7 @@ const EditorContent: React.FC = () => {
       .use(history)
       .use(listener)
       .use(prism)
+      .use(typoraEmojiDecorationPlugin)
   }, [filePath])
 
   return <Milkdown />

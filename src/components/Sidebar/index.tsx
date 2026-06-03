@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useState } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 import { useLanguage } from '../../i18n'
+import { useAppLogo } from '../../hooks/useAppLogo'
 import './styles.css'
 
 // 从 Markdown 内容提取标题生成大纲
@@ -19,6 +20,65 @@ function extractHeadings(content: string): Array<{ level: number; text: string }
   }
 
   return headings
+}
+
+type HeadingNode = {
+  level: number
+  text: string
+  originalIndex: number
+  children: HeadingNode[]
+}
+
+// 将扁平标题序列还原为 Typora 大纲 CSS 期望的树形结构。
+function buildHeadingTree(headings: Array<{ level: number; text: string }>): HeadingNode[] {
+  const roots: HeadingNode[] = []
+  const stack: HeadingNode[] = []
+
+  headings.forEach((heading, originalIndex) => {
+    const node: HeadingNode = {
+      ...heading,
+      originalIndex,
+      children: [],
+    }
+
+    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
+      stack.pop()
+    }
+
+    const parent = stack[stack.length - 1]
+    if (parent) {
+      parent.children.push(node)
+    } else {
+      roots.push(node)
+    }
+
+    stack.push(node)
+  })
+
+  return roots
+}
+
+function flattenVisibleHeadings(
+  nodes: HeadingNode[],
+  collapsedIndices: Record<number, boolean>,
+): Array<{ level: number; text: string; originalIndex: number; hasChildren: boolean }> {
+  const result: Array<{ level: number; text: string; originalIndex: number; hasChildren: boolean }> = []
+
+  nodes.forEach((node) => {
+    const hasChildren = node.children.length > 0
+    result.push({
+      level: node.level,
+      text: node.text,
+      originalIndex: node.originalIndex,
+      hasChildren,
+    })
+
+    if (hasChildren && !collapsedIndices[node.originalIndex]) {
+      result.push(...flattenVisibleHeadings(node.children, collapsedIndices))
+    }
+  })
+
+  return result
 }
 
 // 展开/折叠小箭头组件
@@ -46,8 +106,10 @@ const ArrowIcon: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
 export const Sidebar: React.FC = () => {
   const { showSidebar, content } = useEditorStore()
   const { t } = useLanguage()
+  const logoSmall = useAppLogo()
 
   const headings = useMemo(() => extractHeadings(content), [content])
+  const headingTree = useMemo(() => buildHeadingTree(headings), [headings])
 
   // 记录哪些索引的大纲项被折叠了
   const [collapsedIndices, setCollapsedIndices] = useState<Record<number, boolean>>({})
@@ -79,40 +141,10 @@ export const Sidebar: React.FC = () => {
     }
   }, [])
 
-  // 判断原始列表中某个节点是否有子标题
-  const hasChildren = useCallback((originalIndex: number) => {
-    const current = headings[originalIndex]
-    const next = headings[originalIndex + 1]
-    return next && next.level > current.level
-  }, [headings])
-
   // 计算当前可见的大纲项
   const visibleHeadings = useMemo(() => {
-    const visible: Array<{ level: number; text: string; originalIndex: number }> = []
-    let currentHiddenLevel = 999
-
-    for (let i = 0; i < headings.length; i++) {
-      const heading = headings[i]
-
-      // 如果当前级别小于等于折叠的父级别，说明出了折叠范围，重置隐藏限制
-      if (heading.level <= currentHiddenLevel) {
-        currentHiddenLevel = 999
-      }
-
-      if (currentHiddenLevel === 999) {
-        visible.push({
-          ...heading,
-          originalIndex: i,
-        })
-      }
-
-      // 如果当前节点被折叠，更新隐藏的最大层级
-      if (collapsedIndices[i]) {
-        currentHiddenLevel = Math.min(currentHiddenLevel, heading.level)
-      }
-    }
-    return visible;
-  }, [headings, collapsedIndices])
+    return flattenVisibleHeadings(headingTree, collapsedIndices)
+  }, [headingTree, collapsedIndices])
 
   // 过滤后的大纲列表（实时搜索）
   const filteredHeadings = useMemo(() => {
@@ -128,8 +160,78 @@ export const Sidebar: React.FC = () => {
     return null
   }
 
+  const renderOutlineNodes = (nodes: HeadingNode[]): React.ReactNode =>
+    nodes.map((node) => {
+      const hasChildren = node.children.length > 0
+      const isCollapsed = !!collapsedIndices[node.originalIndex]
+      const stateClass = hasChildren
+        ? (isCollapsed ? 'outline-item-close' : 'outline-item-open')
+        : 'outline-item-single'
+
+      return (
+        <li
+          key={node.originalIndex}
+          className={`outline-item-wrapper level-${node.level} ${stateClass}`}
+        >
+          <div className="outline-item" onClick={() => handleHeadingClick(node.text)}>
+            <span
+              className="outline-expander outline-arrow-container"
+              onClick={(e) => {
+                if (hasChildren) {
+                  toggleCollapse(node.originalIndex, e)
+                }
+              }}
+            >
+              {hasChildren ? (
+                <ArrowIcon collapsed={isCollapsed} />
+              ) : (
+                <span className="outline-arrow-spacer" />
+              )}
+            </span>
+            <span className="outline-label outline-text">{node.text}</span>
+          </div>
+          {hasChildren && !isCollapsed && (
+            <ul className="outline-children">
+              {renderOutlineNodes(node.children)}
+            </ul>
+          )}
+        </li>
+      )
+    })
+
+  const renderSearchResults = (): React.ReactNode =>
+    filteredHeadings.map((heading) => {
+      const isCollapsed = !!collapsedIndices[heading.originalIndex]
+
+      return (
+        <li
+          key={heading.originalIndex}
+          className={`outline-item-wrapper level-${heading.level} outline-item-single`}
+          style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}
+        >
+          <div className="outline-item" onClick={() => handleHeadingClick(heading.text)}>
+            <span
+              className="outline-expander outline-arrow-container"
+              onClick={(e) => {
+                if (heading.hasChildren) {
+                  toggleCollapse(heading.originalIndex, e)
+                }
+              }}
+            >
+              {heading.hasChildren ? (
+                <ArrowIcon collapsed={isCollapsed} />
+              ) : (
+                <span className="outline-arrow-spacer" />
+              )}
+            </span>
+            <span className="outline-label outline-text">{heading.text}</span>
+          </div>
+        </li>
+      )
+    })
+
   return (
-    <aside className="sidebar">
+    <aside id="typora-sidebar" className="sidebar">
       <div className="sidebar-header">
         {isSearching ? (
           <div className="sidebar-search-header">
@@ -149,7 +251,10 @@ export const Sidebar: React.FC = () => {
           </div>
         ) : (
           <div className="sidebar-title-header">
-            <h3>大纲</h3>
+            <div className="sidebar-title-container">
+              <img src={logoSmall} alt="Logo" className="sidebar-title-logo" />
+              <h3>大纲</h3>
+            </div>
             <button className="sidebar-header-search-btn" onClick={() => setIsSearching(true)} title="搜索">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
@@ -159,41 +264,14 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="sidebar-content">
+      <div id="sidebar-content" className="sidebar-content">
         {headings.length === 0 ? (
           <p className="sidebar-empty">{t('sidebar.empty')}</p>
         ) : filteredHeadings.length === 0 ? (
           <p className="sidebar-empty">无匹配结果</p>
         ) : (
-          <ul className="outline-list">
-            {filteredHeadings.map((heading) => {
-              const showArrow = hasChildren(heading.originalIndex)
-              const isCollapsed = !!collapsedIndices[heading.originalIndex]
-              return (
-                <li
-                  key={heading.originalIndex}
-                  className={`outline-item level-${heading.level}`}
-                  style={{ paddingLeft: `${(heading.level - 1) * 12}px` }}
-                  onClick={() => handleHeadingClick(heading.text)}
-                >
-                  <span
-                    className="outline-arrow-container"
-                    onClick={(e) => {
-                      if (showArrow) {
-                        toggleCollapse(heading.originalIndex, e)
-                      }
-                    }}
-                  >
-                    {showArrow ? (
-                      <ArrowIcon collapsed={isCollapsed} />
-                    ) : (
-                      <span className="outline-arrow-spacer" />
-                    )}
-                  </span>
-                  <span className="outline-text">{heading.text}</span>
-                </li>
-              )
-            })}
+          <ul id="outline-content" className="outline-list outline-content">
+            {searchQuery.trim() ? renderSearchResults() : renderOutlineNodes(headingTree)}
           </ul>
         )}
       </div>
