@@ -112,6 +112,25 @@ export function simpleMarkdownToHTML(markdown: string): string {
 
     return `<li class="md-task-list-item">${body}</li>\n`
   }
+  renderer.table = function (token) {
+    const header = token.header.map((cell) => this.tablecell(cell)).join('')
+    const rows = token.rows
+      .map((row) => this.tablerow({ text: row.map((cell) => this.tablecell(cell)).join('') }))
+      .join('')
+    const tableBody = rows ? `<tbody>${rows}</tbody>` : ''
+
+    return [
+      '<figure class="md-table-fig table-figure">',
+      '<table>',
+      '<thead>',
+      this.tablerow({ text: header }),
+      '</thead>',
+      tableBody,
+      '</table>',
+      '</figure>',
+      '',
+    ].join('\n')
+  }
 
   let html = marked.parse(preparedMarkdown, {
     async: false,

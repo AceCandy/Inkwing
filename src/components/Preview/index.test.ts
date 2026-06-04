@@ -35,4 +35,18 @@ describe('simpleMarkdownToHTML', () => {
     expect(html).toContain('<input checked="" disabled="" type="checkbox">')
     expect(html).toContain('<input disabled="" type="checkbox">')
   })
+
+  it('wraps markdown tables with the Typora table figure classes', () => {
+    const html = simpleMarkdownToHTML([
+      '| 字段 | 说明 |',
+      '| --- | --- |',
+      '| id | 标识 |',
+    ].join('\n'))
+
+    expect(html).toContain('<figure class="md-table-fig table-figure">')
+    expect(html).toContain('<table>')
+    expect(html).toContain('<th>字段</th>')
+    expect(html).toContain('</table>')
+    expect(html).toContain('</figure>')
+  })
 })

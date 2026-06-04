@@ -123,6 +123,14 @@
 }
 
 /* 表格样式 */
+.preview-content .md-table-fig.table-figure {
+  margin: 1em 0;
+}
+
+.preview-content .md-table-fig.table-figure table {
+  margin: 0;
+}
+
 .preview-content table {
   width: 100%;
   margin: 1em 0;
