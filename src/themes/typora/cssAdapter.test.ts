@@ -336,6 +336,23 @@ describe('adaptTyporaCss', () => {
     expect(result).not.toContain('.typora-theme-scope .outline-content')
   })
 
+  it('mirrors Typora wrapper-active outline selectors to the active outline item', () => {
+    const css = [
+      '#outline-content .outline-item-active > .outline-item { margin-left: 4px !important; }',
+      '.outline-item-active > .outline-item::before { left: -7px !important; }',
+    ].join('\n')
+
+    const result = adaptTyporaCss(css, {
+      assetBasePath: '/app/themes/claude',
+      toAssetUrl,
+    })
+
+    expect(result).toContain('body.typora-theme-scope #outline-content .outline-item-active > .outline-item')
+    expect(result).toContain('body.typora-theme-scope #outline-content .outline-item-active{')
+    expect(result).toContain('.typora-theme-scope .outline-item-active > .outline-item::before')
+    expect(result).toContain('.typora-theme-scope .outline-item-active::before{')
+  })
+
   it('keeps Typora body state selectors matchable when adapting sidebar shell rules', () => {
     const css = [
       '.mac-os #typora-sidebar { margin-top: calc(var(--title-bar-height, 28px) + 15px) !important; }',

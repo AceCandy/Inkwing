@@ -213,13 +213,31 @@ function transformRule(prelude: string, body: string): string {
   }
 
   const selectors = splitSelectors(normalizedPrelude)
-  const transformedSelectors = selectors.flatMap((selector) => transformSelector(selector)).filter(Boolean)
+  const transformedSelectors = dedupeSelectors(
+    selectors
+      .flatMap((selector) => transformSelector(selector))
+      .flatMap((selector) => expandTyporaOutlineActiveWrapperSelector(selector))
+      .filter(Boolean),
+  )
 
   if (transformedSelectors.length === 0) {
     return ''
   }
 
   return `${transformedSelectors.join(', ')}{${transformRuleBody(body)}}`
+}
+
+function expandTyporaOutlineActiveWrapperSelector(selector: string): string[] {
+  const expandedSelector = selector.replace(
+    /\.outline-item-active\s*>\s*\.outline-item\b/g,
+    '.outline-item-active',
+  )
+
+  if (expandedSelector === selector) {
+    return [selector]
+  }
+
+  return [selector, expandedSelector]
 }
 
 function transformRuleBody(body: string): string {
