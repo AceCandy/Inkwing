@@ -449,7 +449,7 @@ function App() {
 
   return (
     <div className="app">
-      <div className="app-body" ref={appBodyRef}>
+      <div className="app-body" ref={appBodyRef} style={sidebarLayoutStyle}>
         {showSidebar && (
           <div className="sidebar-layout" style={sidebarLayoutStyle}>
             <Sidebar />
@@ -469,9 +469,13 @@ function App() {
             </div>
           </div>
         )}
-        <main className="editor-area">
+        <main className={`editor-area ${!showSidebar ? 'without-sidebar' : ''}`}>
           {/* 顶部标题栏/字数统计（Typora 风格） */}
-          <div className={`editor-header-bar ${!showSidebar ? 'has-native-buttons' : ''}`} data-tauri-drag-region="true">
+          <div
+            className={`editor-header-bar ${!showSidebar ? 'has-native-buttons' : ''}`}
+            data-tauri-drag-region="true"
+            data-typora-node="titlebar"
+          >
             <div
               className="header-center"
               style={{
@@ -551,25 +555,27 @@ function App() {
             </div>
           </div>
 
-          {mode === 'wysiwyg' ? (
-            <MilkdownEditor />
-          ) : (
-            <div className="split-view" ref={splitViewRef}>
-              <div className="split-pane">
-                <div className="pane-header">
-                  <span>{t('editor.title')}</span>
+          <div className="typora-content-shell" data-typora-node="content">
+            {mode === 'wysiwyg' ? (
+              <MilkdownEditor />
+            ) : (
+              <div className="split-view" ref={splitViewRef}>
+                <div className="split-pane">
+                  <div className="pane-header">
+                    <span>{t('editor.title')}</span>
+                  </div>
+                  <MilkdownEditor />
                 </div>
-                <MilkdownEditor />
-              </div>
-              <div className="split-divider" onMouseDown={handleDividerMouseDown} />
-              <div className="split-pane">
-                <div className="pane-header">
-                  <span>{t('preview.title')}</span>
+                <div className="split-divider" onMouseDown={handleDividerMouseDown} />
+                <div className="split-pane">
+                  <div className="pane-header">
+                    <span>{t('preview.title')}</span>
+                  </div>
+                  <Preview />
                 </div>
-                <Preview />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </main>
       </div>
       {showSettings && <SettingsModal />}

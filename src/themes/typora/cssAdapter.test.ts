@@ -220,7 +220,6 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));')
     expect(result).toContain('width:calc(var(--sidebar-width, 245px) - 15px);')
     expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-header{display:none;}')
     expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-content{position:absolute;top:24px;right:0;bottom:15px;left:0;')
     expect(result.trim().endsWith('}')).toBe(true)
   })
@@ -238,18 +237,37 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('body.typora-theme-scope .preview-content')
   })
 
-  it('adds Typora-like outline tree compatibility rules', () => {
+  it('does not synthesize theme-specific outline connector rules without theme CSS', () => {
     const result = adaptTyporaCss('', {
       assetBasePath: '/app/themes/claude',
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope .outline-content{')
-    expect(result).toContain('padding:14px 14px 22px 17px;')
-    expect(result).toContain('body.typora-theme-scope .outline-content li .outline-item::before')
-    expect(result).toContain('border-left:1px solid var(--LOGO-color);')
-    expect(result).toContain('body.typora-theme-scope .outline-item-open > .outline-children::before')
-    expect(result).toContain('body.typora-theme-scope .outline-content li .outline-label')
+    expect(result).toContain('body.typora-theme-scope #outline-content{')
+    expect(result).not.toContain('outline-item::before')
+    expect(result).not.toContain('outline-children::before')
+    expect(result).not.toContain('var(--LOGO-color')
+  })
+
+  it('keeps Claude outline connector rules from the imported theme CSS', () => {
+    const result = adaptTyporaCss([
+      '#outline-content { color: var(--sidebar-font-color); }',
+      '.outline-content li .outline-label { font-family: var(--font-sans); }',
+      '.outline-content li .outline-item::before { border-left: 1px solid var(--LOGO-color); }',
+      '.outline-content > li:first-of-type > .outline-item::before { border-top: 1px solid var(--LOGO-color); }',
+      '.outline-item-open > .outline-children::before { border-left: 1px solid var(--LOGO-color); }',
+    ].join('\n'), {
+      assetBasePath: '/app/themes/claude',
+      toAssetUrl,
+    })
+
+    expect(result).toContain('body.typora-theme-scope #outline-content{')
+    expect(result).toContain('body.typora-theme-scope #outline-content li .outline-label{')
+    expect(result).toContain('font-family: var(--font-sans);')
+    expect(result).toContain('body.typora-theme-scope #outline-content li .outline-item::before{')
+    expect(result).toContain('border-left: 1px solid var(--accent);')
+    expect(result).toContain('body.typora-theme-scope #outline-content > li:first-of-type > .outline-item::before{')
+    expect(result).toContain('.typora-theme-scope .outline-item-open > .outline-children::before{')
   })
 
   it('keeps Typora sidebar shell selectors scoped to the real sidebar id', () => {
@@ -289,7 +307,7 @@ describe('adaptTyporaCss', () => {
     expect(result).not.toContain('.typora-theme-scope .pin-outline')
   })
 
-  it('maps Typora outline content id selectors onto Inkwing outline content', () => {
+  it('keeps Typora outline content id selectors scoped to the real outline id', () => {
     const css = [
       '#outline-content { color: var(--sidebar-font-color); }',
       '#outline-content .outline-label { font-size: 14px; }',
@@ -300,9 +318,9 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toMatch(/\.typora-theme-scope \.outline-content\{\s*color: var\(--text-secondary\);/)
-    expect(result).toMatch(/\.typora-theme-scope \.outline-content \.outline-label\{\s*font-size: 14px;/)
-    expect(result).not.toContain('#outline-content')
+    expect(result).toMatch(/body\.typora-theme-scope #outline-content\{\s*color: var\(--text-secondary\);/)
+    expect(result).toMatch(/body\.typora-theme-scope #outline-content \.outline-label\{\s*font-size: 14px;/)
+    expect(result).not.toContain('.typora-theme-scope .outline-content')
   })
 
   it('keeps Typora body state selectors matchable when adapting sidebar shell rules', () => {
@@ -333,8 +351,8 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope.mac-os.active-tab-outline .outline-content{')
-    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode.active-tab-outline .outline-content{')
+    expect(result).toContain('body.typora-theme-scope.mac-os.active-tab-outline #outline-content{')
+    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode.active-tab-outline #outline-content{')
     expect(result).not.toContain('.typora-theme-scope .mac-os.active-tab-outline')
     expect(result).not.toContain('.typora-theme-scope .mac-seamless-mode.active-tab-outline')
   })
@@ -354,6 +372,31 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('body.typora-theme-scope.os-windows.ty-show-search #sidebar-content .sidebar-content-content{')
     expect(result).not.toContain('.typora-theme-scope .mac-os.active-tab-outline')
     expect(result).not.toContain('.typora-theme-scope .os-windows .ty-show-search')
+  })
+
+  it('ignores Typora selector comments before scoping Claude shell rules', () => {
+    const css = [
+      '/* Implementation detail */',
+      '.no-collapse-outline .outline-content li ul { margin-left: 21px; }',
+      '/* Implementation detail */',
+      '.mac-os #typora-sidebar, .mac-seamless-mode #typora-sidebar { margin-top: 43px; }',
+      '/* Implementation detail */',
+      '.ty-on-outline-filter #outline-content .outline-item::before { display: none; }',
+    ].join('\n')
+
+    const result = adaptTyporaCss(css, {
+      assetBasePath: '/app/themes/claude',
+      toAssetUrl,
+    })
+
+    expect(result).toContain('body.typora-theme-scope.no-collapse-outline #outline-content li ul{')
+    expect(result).toContain('body.typora-theme-scope.mac-os #typora-sidebar')
+    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode #typora-sidebar')
+    expect(result).toContain('body.typora-theme-scope.ty-on-outline-filter #outline-content .outline-item::before{')
+    expect(result).not.toContain('.no-collapse-outline body.typora-theme-scope')
+    expect(result).not.toContain('.mac-os body.typora-theme-scope')
+    expect(result).not.toContain('.ty-on-outline-filter body.typora-theme-scope')
+    expect(result).not.toContain('.typora-theme-scope /* Implementation detail */')
   })
 
   it('maps Typora inline marker selectors onto rendered inline elements', () => {

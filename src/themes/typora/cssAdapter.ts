@@ -6,6 +6,7 @@ const TYPORA_EDITOR_SCOPE = `${TYPORA_SCOPE} .milkdown .editor`
 const TYPORA_PREVIEW_SCOPE = `${TYPORA_SCOPE} .preview-content`
 const TYPORA_SIDEBAR_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar`
 const TYPORA_RESIZER_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar-resizer`
+const TYPORA_OUTLINE_SCOPE = `${TYPORA_BODY_SCOPE} #outline-content`
 const TYPORA_CONTENT_SCOPES = [TYPORA_EDITOR_SCOPE, TYPORA_PREVIEW_SCOPE] as const
 const TYPORA_APP_CONTENT_SCOPES = [
   `${TYPORA_BODY_SCOPE} .milkdown .editor`,
@@ -30,48 +31,22 @@ ${TYPORA_BODY_SCOPE} .preview-container{padding:var(--typora-surface-padding, 24
 ${TYPORA_BODY_SCOPE} #typora-sidebar{position:relative;width:calc(var(--sidebar-width, 245px) - 15px);margin:15px 0 15px 15px;height:calc(100% - 30px);padding-top:0;background-image:linear-gradient(to top, var(--sidebar-gradient-from, rgba(245, 244, 237, 0.05)), var(--sidebar-gradient-to, rgba(245, 244, 237, 0.3)));border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));border-radius:15px;box-shadow:var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%), 0 8px 18px -14px rgb(31 30 29 / 18%));font-family:var(--font-sans);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
-${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-header{display:none;}
-${TYPORA_BODY_SCOPE} .sidebar-title-logo{display:none;}
-${TYPORA_BODY_SCOPE} .sidebar-header h3{font-size:24px;font-weight:var(--sidebar-font-weight, 430);letter-spacing:0;color:var(--font-color);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-content{position:absolute;top:24px;right:0;bottom:15px;left:0;padding:0;overflow:auto;min-height:0;}
-${TYPORA_BODY_SCOPE} .outline-content{height:100%;max-height:100%;box-sizing:border-box;overflow:auto!important;padding:14px 14px 22px 17px;font-size:14px!important;color:var(--sidebar-font-color);}
-${TYPORA_BODY_SCOPE} .outline-content,
-${TYPORA_BODY_SCOPE} .outline-content ul{list-style:none;margin:0;padding-left:0;}
-${TYPORA_BODY_SCOPE} .outline-content li{position:relative;z-index:30;margin:0;padding:0;}
-${TYPORA_BODY_SCOPE} .outline-content li ul{position:relative;z-index:48;margin-left:18px;margin-top:0!important;padding:0;}
-${TYPORA_BODY_SCOPE} .outline-content li .outline-item{display:block!important;position:relative;z-index:50;margin:0 0 3px 7px;width:calc(100% - 4px);border:none;border-radius:5px;line-height:1;padding:0 0 0 4px;background:transparent;}
-${TYPORA_BODY_SCOPE} .outline-item > .outline-expander{display:block!important;float:left;width:auto;height:0;min-width:0;padding-left:0;background:transparent;color:var(--sidebar-font-color);}
-${TYPORA_BODY_SCOPE} .outline-arrow-container{display:block;width:auto;height:0;min-width:0;background:transparent;color:var(--sidebar-font-color);}
-${TYPORA_BODY_SCOPE} .outline-arrow-container:hover{background:transparent;}
-${TYPORA_BODY_SCOPE} .outline-arrow-container svg{display:block;width:10px;height:10px;margin-top:8px;margin-left:-2px;color:inherit;}
-${TYPORA_BODY_SCOPE} .outline-arrow-spacer{display:block;width:0;height:0;}
-${TYPORA_BODY_SCOPE} .outline-content li .outline-label{display:inline-block;max-width:calc(100% - 12px);border-radius:4px;padding:7px 7px 7px 8px;font-size:14px!important;font-weight:var(--sidebar-font-weight, 430)!important;line-height:1.2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;word-wrap:normal;word-break:keep-all;white-space:nowrap;text-decoration:none;color:var(--sidebar-font-color);opacity:1;}
-${TYPORA_BODY_SCOPE} .outline-text{flex:none;color:var(--sidebar-font-color);font-weight:var(--sidebar-font-weight, 430)!important;opacity:1;}
+${TYPORA_OUTLINE_SCOPE}{height:100%;max-height:100%;box-sizing:border-box;overflow:auto!important;padding:14px 14px 22px 17px;font-size:14px!important;color:var(--sidebar-font-color, var(--text-secondary));}
+${TYPORA_OUTLINE_SCOPE},
+${TYPORA_OUTLINE_SCOPE} ul{list-style:none;margin:0;padding-left:0;}
+${TYPORA_OUTLINE_SCOPE} li{position:relative;z-index:30;margin:0;padding:0;}
+${TYPORA_OUTLINE_SCOPE} li ul{position:relative;z-index:48;margin-left:18px;margin-top:0!important;padding:0;}
+${TYPORA_OUTLINE_SCOPE} li .outline-item{display:block!important;position:relative;z-index:50;margin:0 0 3px 7px;width:calc(100% - 4px);border:none;border-radius:5px;line-height:1;padding:0 0 0 4px;background:transparent;}
+${TYPORA_BODY_SCOPE} .outline-item > .outline-expander{display:block!important;float:left;width:auto;height:0;min-width:0;padding-left:0;background:transparent;color:var(--sidebar-font-color, var(--text-secondary));}
+${TYPORA_OUTLINE_SCOPE} li .outline-label{display:inline-block;max-width:calc(100% - 12px);border-radius:4px;padding:7px 7px 7px 8px;font-size:14px!important;font-weight:var(--sidebar-font-weight, 430)!important;line-height:1.2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;word-wrap:normal;word-break:keep-all;white-space:nowrap;text-decoration:none;color:var(--sidebar-font-color, var(--text-secondary));opacity:1;}
 ${TYPORA_BODY_SCOPE} .outline-item-single .outline-label,
 ${TYPORA_BODY_SCOPE} .outline-item-single.outline-item-open .outline-label{padding-left:0!important;}
 ${TYPORA_BODY_SCOPE} .outline-item-open > .outline-item > .outline-label{padding-left:11px;}
-${TYPORA_BODY_SCOPE} .outline-content li .outline-item::before{content:'';position:absolute;z-index:38;left:-10px;top:-27.5px;width:10px;height:calc(50% + 28px);background:transparent;border-left:1px solid var(--LOGO-color);border-bottom:1px solid var(--LOGO-color);}
-${TYPORA_BODY_SCOPE} .outline-content > li:first-of-type > .outline-item::before{top:calc(50% - 1px);height:calc(50% + 15px);border-left:1px solid var(--LOGO-color);border-top:1px solid var(--LOGO-color);border-bottom:none;border-top-left-radius:3px;border-bottom-left-radius:0;}
-${TYPORA_BODY_SCOPE} .outline-children > li:first-child > .outline-item::before,
-${TYPORA_BODY_SCOPE} .outline-content > li:nth-child(2) > .outline-item::before{top:-11px;height:calc(50% + 12px);}
-${TYPORA_BODY_SCOPE} .outline-content > li:last-child > .outline-item::before,
-${TYPORA_BODY_SCOPE} .outline-children > li:last-child > .outline-item::before{border-bottom-left-radius:3px;}
-${TYPORA_BODY_SCOPE} .outline-item-open > .outline-children::before{content:'';position:absolute;left:-21px;top:-26px;width:1px;height:calc(100% + 12px);background:transparent;border-left:1px solid var(--LOGO-color);}
-${TYPORA_BODY_SCOPE} .outline-content > li.outline-item-open:first-child > .outline-children::before{top:-15px;}
-${TYPORA_BODY_SCOPE} .outline-content > li:only-of-type > .outline-item::before,
-${TYPORA_BODY_SCOPE} .outline-item-open:last-of-type > .outline-children::before,
-${TYPORA_BODY_SCOPE} .outline-children > li.outline-item-open:last-child > .outline-children::before{display:none;}
-${TYPORA_BODY_SCOPE} .outline-content > li:only-of-type{margin-left:-8px;}
 ${TYPORA_BODY_SCOPE} .outline-item:hover,
 ${TYPORA_BODY_SCOPE} .outline-item:hover > .outline-label,
 ${TYPORA_BODY_SCOPE} .outline-item-active,
 ${TYPORA_BODY_SCOPE} .outline-item-active > .outline-label{background:var(--hover-color)!important;}
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-1 > .outline-item .outline-text,
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-2 > .outline-item .outline-text,
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-3 > .outline-item .outline-text,
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-4 > .outline-item .outline-text,
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-5 > .outline-item .outline-text,
-${TYPORA_BODY_SCOPE} .outline-item-wrapper.level-6 > .outline-item .outline-text{font-weight:var(--sidebar-font-weight, 430)!important;font-size:14px!important;color:var(--sidebar-font-color);opacity:1;}
 `
 
 const CODE_FENCE_BLOCK_TARGETS = [
@@ -207,19 +182,21 @@ function transformStylesheet(css: string): string {
 }
 
 function transformRule(prelude: string, body: string): string {
-  if (!prelude) {
+  const normalizedPrelude = stripCssComments(prelude).trim()
+
+  if (!normalizedPrelude) {
     return `{${transformStylesheet(body)}}`
   }
 
-  if (prelude.startsWith('@')) {
-    if (PASSTHROUGH_AT_RULES.has(prelude.split(/\s+/)[0])) {
-      return `${prelude}{${body}}`
+  if (normalizedPrelude.startsWith('@')) {
+    if (PASSTHROUGH_AT_RULES.has(normalizedPrelude.split(/\s+/)[0])) {
+      return `${normalizedPrelude}{${body}}`
     }
 
-    return `${prelude}{${transformStylesheet(body)}}`
+    return `${normalizedPrelude}{${transformStylesheet(body)}}`
   }
 
-  const selectors = splitSelectors(prelude)
+  const selectors = splitSelectors(normalizedPrelude)
   const transformedSelectors = selectors.flatMap((selector) => transformSelector(selector)).filter(Boolean)
 
   if (transformedSelectors.length === 0) {
@@ -249,7 +226,10 @@ function transformRuleBody(body: string): string {
       return declaration
     }
 
-    return mappedVariables.map((mappedVariable) => `${mappedVariable}: ${value.trim()};`).join(' ')
+    return [
+      declaration.trim(),
+      ...mappedVariables.map((mappedVariable) => `${mappedVariable}: ${value.trim()};`),
+    ].join(' ')
   })
 
   return nextBody
@@ -380,16 +360,13 @@ function transformTyporaSidebarSelector(selector: string): string[] | null {
 }
 
 function transformTyporaOutlineSelector(selector: string): string[] | null {
-  if (!/(^|[^\w-])#outline-content\b/.test(selector)) {
+  if (!/(^|[^\w-])(?:#outline-content|\.outline-content)\b/.test(selector)) {
     return null
   }
 
   const bodyStateSelector = extractLeadingTyporaBodyStateSelector(selector)
   if (bodyStateSelector) {
-    const outlineSelector = bodyStateSelector.selector.replace(
-      /(^|[^\w-])#outline-content\b/g,
-      (_match, prefix) => `${prefix}.outline-content`,
-    )
+    const outlineSelector = replaceTyporaOutlineRootSelector(bodyStateSelector.selector, '#outline-content')
 
     return [
       `${buildTyporaBodyScope(bodyStateSelector.classes)} ${outlineSelector}`,
@@ -397,8 +374,15 @@ function transformTyporaOutlineSelector(selector: string): string[] | null {
   }
 
   return [
-    scopeSelector(selector.replace(/(^|[^\w-])#outline-content\b/g, (_match, prefix) => `${prefix}.outline-content`)),
+    replaceTyporaOutlineRootSelector(selector, TYPORA_OUTLINE_SCOPE),
   ]
+}
+
+function replaceTyporaOutlineRootSelector(selector: string, target: string): string {
+  return selector.replace(
+    /(^|[^\w-])(?:#outline-content|\.outline-content)\b/g,
+    (_match, prefix) => `${prefix}${target}`,
+  )
 }
 
 function extractLeadingTyporaBodyStateSelector(selector: string): { classes: string[]; selector: string } | null {
@@ -752,4 +736,8 @@ function findMatchingBrace(css: string, openBraceIndex: number): number {
 
 function transformTextChunk(text: string): string {
   return text
+}
+
+function stripCssComments(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\//g, '')
 }

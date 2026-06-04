@@ -1,131 +1,143 @@
-.sidebar {
-  width: 260px;
+#typora-sidebar {
+  width: 100%;
   height: 100%;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
+  display: block;
   overflow: hidden;
   flex-shrink: 0;
-  padding-top: 30px; /* macOS 交通灯窗口控制按钮预留空间 */
+  position: relative;
+  box-sizing: border-box;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
-.sidebar-header {
-  padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
+/* Typora 侧栏 shell：保留真实 DOM，默认只展示 macOS segmented tab。 */
+.info-panel-tab-wrapper {
+  display: none;
+}
+
+.sidebar-osx-tab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 60;
+  height: 24px;
+  background: inherit;
+}
+
+.sidebar-tabs {
   display: flex;
-  justify-content: center;
-  border-bottom: none; /* 移除突兀的分割线 */
-}
-
-.sidebar-header h3 {
-  font-size: 0.8rem;
-  font-weight: 500;
+  align-items: center;
+  height: 24px;
   color: var(--text-secondary);
-  letter-spacing: 0.05em;
+  font-size: 12px;
+  line-height: 24px;
+  user-select: none;
 }
 
-.sidebar-title-header {
+.sidebar-tab {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  position: relative;
+  min-width: 48px;
+  height: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
-.sidebar-title-container {
+.sidebar-tab.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.sidebar-tab-btn {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sidebar-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.ty-sidebar-search-panel {
+  display: none;
   align-items: center;
   gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
-.sidebar-title-logo {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+.sidebar-osx-tab.searching .sidebar-tabs {
+  display: none;
 }
 
-.sidebar-header-search-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: pointer;
+.sidebar-osx-tab.searching .ty-sidebar-search-panel {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  color: var(--text-secondary);
 }
 
-.sidebar-header:hover .sidebar-header-search-btn {
-  opacity: 1;
-}
-
-.sidebar-header-search-btn:hover {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-/* 搜索模式头部 */
-.sidebar-search-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 2px 0;
-}
-
-.search-back-btn {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.search-back-btn:hover {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-.search-input {
+#file-library-search-input {
   flex: 1;
-  font-size: 0.8rem;
-  color: var(--text-primary);
-  border-bottom: 1.5px solid var(--accent) !important;
-  padding: 2px 0;
+  min-width: 0;
+  border: 0;
   outline: none;
   background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
 }
 
 .sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-sm);
+  position: absolute;
+  top: 24px;
+  right: 0;
+  bottom: 28px;
+  left: 0;
+  overflow: auto;
+  padding: 0;
+  min-height: 0;
 }
 
-.sidebar-empty {
-  padding: var(--spacing-md);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  text-align: center;
+#file-library-search,
+#file-library {
+  display: none;
 }
 
-.outline-list,
+.outline-content,
 .outline-children {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+.outline-content {
+  height: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 14px 14px 22px 17px;
+  color: var(--sidebar-font-color, var(--text-secondary));
+  font-size: 14px;
+}
+
+.outline-content:empty::after {
+  content: attr(data-after-content);
+  display: block;
+  padding: 12px 7px;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
 .outline-children {
-  margin-left: 12px;
+  position: relative;
+  z-index: 48;
+  margin-left: 18px;
 }
 
 .outline-item-wrapper {
@@ -135,73 +147,114 @@
 }
 
 .outline-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  display: block;
+  position: relative;
+  z-index: 50;
+  margin: 0 0 3px 7px;
+  width: calc(100% - 4px);
+  border: none;
+  border-radius: 5px;
+  line-height: 1;
+  padding: 0 0 0 4px;
+  background: transparent;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
-.outline-item:hover {
+.outline-item:hover,
+.outline-item:hover > .outline-label,
+.outline-item-active,
+.outline-item-active > .outline-label {
   background-color: var(--bg-surface);
 }
 
-.outline-arrow-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  cursor: pointer;
+.outline-expander {
+  display: block;
+  float: left;
+  width: auto;
+  height: 0;
+  min-width: 0;
+  padding-left: 0;
+  color: var(--sidebar-font-color, var(--text-secondary));
+  background: transparent;
+}
+
+.outline-item-open > .outline-item > .outline-expander::before {
+  content: "⌄";
+  display: block;
+  width: 10px;
+  margin-top: 5px;
+  margin-left: -2px;
+  color: inherit;
+  font-size: 11px;
+  line-height: 10px;
+}
+
+.outline-item-close > .outline-item > .outline-expander::before {
+  content: "›";
+  display: block;
+  width: 10px;
+  margin-top: 5px;
+  margin-left: -2px;
+  color: inherit;
+  font-size: 12px;
+  line-height: 10px;
+}
+
+.outline-label {
+  display: inline-block;
+  max-width: calc(100% - 12px);
   border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.outline-arrow-container:hover {
-  background-color: var(--border);
-}
-
-.outline-arrow-spacer {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
-.outline-text {
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  line-height: 1.4;
+  padding: 7px 7px 7px 8px;
+  color: var(--sidebar-font-color, var(--text-secondary));
+  font-size: 14px;
+  font-weight: var(--sidebar-font-weight, 430);
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
+  overflow-wrap: normal;
+  word-wrap: normal;
+  word-break: keep-all;
   white-space: nowrap;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.outline-item-single .outline-label,
+.outline-item-single.outline-item-open .outline-label {
+  padding-left: 0;
+}
+
+.outline-item-open > .outline-item > .outline-label {
+  padding-left: 11px;
+}
+
+.sidebar-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  min-height: 24px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  background: inherit;
+}
+
+.sidebar-footer-item,
+.sidebar-footer-main-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 8px;
+}
+
+.sidebar-footer-main-item {
   flex: 1;
 }
 
-/* 用字体样式区分大纲内容的层级 */
-.outline-item-wrapper.level-1 > .outline-item .outline-text {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.outline-item-wrapper.level-2 > .outline-item .outline-text {
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  opacity: 0.95;
-}
-
-.outline-item-wrapper.level-3 > .outline-item .outline-text,
-.outline-item-wrapper.level-4 > .outline-item .outline-text,
-.outline-item-wrapper.level-5 > .outline-item .outline-text,
-.outline-item-wrapper.level-6 > .outline-item .outline-text {
-  font-weight: 400;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  opacity: 0.85;
+.dropdown-menu {
+  display: none;
 }
 
 body.typora-theme-scope #typora-sidebar {

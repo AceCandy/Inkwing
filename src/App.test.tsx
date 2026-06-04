@@ -1,8 +1,11 @@
 import React from 'react'
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import * as AppModule from './App'
+
+const appCss = readFileSync(new URL('./App.css', import.meta.url), 'utf8')
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
@@ -114,12 +117,36 @@ describe('App sidebar resizing', () => {
     const html = renderToStaticMarkup(<AppModule.default />)
 
     expect(html).toContain('id="typora-sidebar"')
-    expect(html).toContain('class="sidebar stopselect dropmenu sidebar-menu active-tab-outline open"')
-    expect(html).toContain('class="outline-list outline-content sidebar-content-content"')
+    expect(html).toContain('class="stopselect dropmenu sidebar-menu open use-file-tree-style active-tab-outline"')
+    expect(html).toContain('id="toc-dropmenu"')
+    expect(html).toContain('class="info-panel-tab-wrapper ty-tab-wrapper"')
+    expect(html).toContain('id="sidepanel-segmented-input-files">文件</div>')
+    expect(html).toContain('id="sidepanel-segmented-input-outline"')
+    expect(html).toContain('id="ty-sidebar-footer"')
+    expect(html).toContain('class="outline-content sidebar-content-content"')
     expect(html).toContain('data-after-content="大纲内容为空"')
-    expect(html).toContain('outline-item-wrapper outline-h1 level-1 outline-item-open')
-    expect(html).toContain('outline-item-wrapper outline-h2 level-2 outline-item-signle outline-item-single')
+    expect(html).toContain('outline-item-wrapper outline-h1 outline-item-open')
+    expect(html).toContain('outline-item-wrapper outline-h2 outline-item-signle outline-item-single')
     expect(html).toContain('outline-item-active')
-    expect(html).toContain('outline-label outline-text outline-active')
+    expect(html).toContain('outline-label outline-active')
+    expect(html).not.toContain('outline-arrow-container')
+    expect(html).not.toContain('outline-text')
+  })
+
+  it('renders Typora titlebar and content shell landmarks', () => {
+    const html = renderToStaticMarkup(<AppModule.default />)
+
+    expect(html).toContain('class="editor-header-bar')
+    expect(html).toContain('data-typora-node="titlebar"')
+    expect(html).toContain('class="typora-content-shell"')
+    expect(html).toContain('data-typora-node="content"')
+  })
+
+  it('styles the main shell with Typora-compatible geometry', () => {
+    expect(appCss).toMatch(/\.app\s*\{[\s\S]*--title-bar-height: 28px;/)
+    expect(appCss).toMatch(/\.app-body > \.editor-area\s*\{[\s\S]*position: absolute;[\s\S]*left: var\(--sidebar-width\);/)
+    expect(appCss).toMatch(/\.editor-header-bar\s*\{[\s\S]*height: var\(--title-bar-height\);[\s\S]*position: absolute;/)
+    expect(appCss).toMatch(/\.typora-content-shell\s*\{[\s\S]*top: var\(--title-bar-height\);[\s\S]*height: calc\(100% - var\(--title-bar-height\)\);/)
+    expect(appCss).toMatch(/\.sidebar-resizer\s*\{[\s\S]*width: 6px;[\s\S]*margin-left: -2px;/)
   })
 })
