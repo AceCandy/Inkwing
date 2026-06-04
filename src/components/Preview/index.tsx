@@ -103,6 +103,14 @@ export function simpleMarkdownToHTML(markdown: string): string {
     const langAttr = language ? ` lang="${escapeAttribute(language)}"` : ''
     return `<pre class="md-fences"${langAttr}><code>${escapeHtml(token.text.trim())}</code></pre>`
   }
+  renderer.list = function (token) {
+    const tag = token.ordered ? 'ol' : 'ul'
+    const startAttr = token.ordered && token.start !== 1 ? ` start="${token.start}"` : ''
+    const taskListClass = token.items.some((item) => item.task) ? ' class="task-list"' : ''
+    const body = token.items.map((item) => this.listitem(item)).join('')
+
+    return `<${tag}${startAttr}${taskListClass}>\n${body}</${tag}>\n`
+  }
   renderer.listitem = function (token) {
     const body = this.parser.parse(token.tokens)
 
