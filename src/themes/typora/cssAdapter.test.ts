@@ -247,6 +247,10 @@ describe('adaptTyporaCss', () => {
     })
 
     expect(result).toContain('body.typora-theme-scope #outline-content{')
+    expect(result).toContain('padding:14px 14px 22px 17px;')
+    expect(result).toContain('body.typora-theme-scope #outline-content{list-style:none;margin:0;}')
+    expect(result).toContain('body.typora-theme-scope #outline-content ul{list-style:none;margin:0;padding-left:0;}')
+    expect(result).not.toContain('body.typora-theme-scope #outline-content,\nbody.typora-theme-scope #outline-content ul')
     expect(result).not.toContain('outline-item::before')
     expect(result).not.toContain('outline-children::before')
     expect(result).not.toContain('var(--LOGO-color')

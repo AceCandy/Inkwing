@@ -33,7 +33,7 @@ ${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
 ${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-content{position:absolute;top:24px;right:0;bottom:15px;left:0;padding:0;overflow:auto;min-height:0;}
 ${TYPORA_OUTLINE_SCOPE}{height:100%;max-height:100%;box-sizing:border-box;overflow:auto!important;padding:14px 14px 22px 17px;font-size:14px!important;color:var(--sidebar-font-color, var(--text-secondary));}
-${TYPORA_OUTLINE_SCOPE},
+${TYPORA_OUTLINE_SCOPE}{list-style:none;margin:0;}
 ${TYPORA_OUTLINE_SCOPE} ul{list-style:none;margin:0;padding-left:0;}
 ${TYPORA_OUTLINE_SCOPE} li{position:relative;z-index:30;margin:0;padding:0;}
 ${TYPORA_OUTLINE_SCOPE} li ul{position:relative;z-index:48;margin-left:18px;margin-top:0!important;padding:0;}
