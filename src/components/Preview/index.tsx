@@ -103,6 +103,15 @@ export function simpleMarkdownToHTML(markdown: string): string {
     const langAttr = language ? ` lang="${escapeAttribute(language)}"` : ''
     return `<pre class="md-fences"${langAttr}><code>${escapeHtml(token.text.trim())}</code></pre>`
   }
+  renderer.listitem = function (token) {
+    const body = this.parser.parse(token.tokens)
+
+    if (!token.task) {
+      return `<li>${body}</li>\n`
+    }
+
+    return `<li class="md-task-list-item">${body}</li>\n`
+  }
 
   let html = marked.parse(preparedMarkdown, {
     async: false,

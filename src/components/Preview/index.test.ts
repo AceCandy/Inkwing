@@ -27,4 +27,12 @@ describe('simpleMarkdownToHTML', () => {
     expect(html).toContain('mc<sup>2</sup>')
     expect(html).toContain('今天天气真好 ☀️')
   })
+
+  it('marks GFM task list items with the Typora task item class', () => {
+    const html = simpleMarkdownToHTML('- [x] 已完成\n- [ ] 待处理')
+
+    expect(html).toContain('<li class="md-task-list-item">')
+    expect(html).toContain('<input checked="" disabled="" type="checkbox">')
+    expect(html).toContain('<input disabled="" type="checkbox">')
+  })
 })
