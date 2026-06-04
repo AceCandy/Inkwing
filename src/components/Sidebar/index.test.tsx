@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
+import { resolveActiveHeadingIndex } from './index'
 import { Sidebar } from './index'
 
 vi.mock('../../stores/editorStore', () => ({
@@ -24,6 +25,13 @@ vi.mock('../../i18n', () => ({
 }))
 
 describe('Sidebar', () => {
+  it('resolves the active outline item from the latest heading above the viewport reference line', () => {
+    expect(resolveActiveHeadingIndex([], 120)).toBeNull()
+    expect(resolveActiveHeadingIndex([140, 260, 420], 120)).toBe(0)
+    expect(resolveActiveHeadingIndex([80, 160, 320], 180)).toBe(1)
+    expect(resolveActiveHeadingIndex([80, 160, 320], 360)).toBe(2)
+  })
+
   it('renders Typora-compatible nested outline markup', () => {
     const html = renderToStaticMarkup(<Sidebar />)
 

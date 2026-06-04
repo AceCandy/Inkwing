@@ -79,6 +79,22 @@ function flattenVisibleHeadings(
   return result
 }
 
+export function resolveActiveHeadingIndex(headingTops: number[], referenceTop: number): number | null {
+  if (headingTops.length === 0) {
+    return null
+  }
+
+  let activeIndex = 0
+  for (let index = 0; index < headingTops.length; index++) {
+    if (headingTops[index] > referenceTop) {
+      break
+    }
+    activeIndex = index
+  }
+
+  return activeIndex
+}
+
 export const Sidebar: React.FC = () => {
   const { showSidebar, content } = useEditorStore()
 
@@ -118,9 +134,52 @@ export const Sidebar: React.FC = () => {
     }
   }, [])
 
+  const syncActiveHeadingFromViewport = useCallback(() => {
+    const editorRoot = document.querySelector('.milkdown .editor')
+    if (!editorRoot) {
+      setActiveHeadingIndex(null)
+      return
+    }
+
+    const headingElements = Array.from(editorRoot.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+    if (headingElements.length === 0) {
+      setActiveHeadingIndex(null)
+      return
+    }
+
+    const editorContainer = document.querySelector('.milkdown-editor')
+    const referenceTop = (editorContainer?.getBoundingClientRect().top ?? 0) + 72
+    const headingTops = headingElements.map((element) => element.getBoundingClientRect().top)
+    setActiveHeadingIndex(resolveActiveHeadingIndex(headingTops, referenceTop))
+  }, [headings.length])
+
   useEffect(() => {
-    setActiveHeadingIndex(null)
-  }, [content])
+    let frame = window.requestAnimationFrame(syncActiveHeadingFromViewport)
+
+    const scheduleSync = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(syncActiveHeadingFromViewport)
+    }
+
+    // Typora 会随正文滚动同步 outline active，这里只读编辑器标题位置，不额外改变文档状态。
+    const scrollContainers = [
+      document.querySelector('.milkdown-editor'),
+      document.querySelector('.preview-container'),
+    ].filter((element): element is Element => element instanceof Element)
+
+    scrollContainers.forEach((element) => {
+      element.addEventListener('scroll', scheduleSync, { passive: true })
+    })
+    window.addEventListener('resize', scheduleSync)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      scrollContainers.forEach((element) => {
+        element.removeEventListener('scroll', scheduleSync)
+      })
+      window.removeEventListener('resize', scheduleSync)
+    }
+  }, [content, syncActiveHeadingFromViewport])
 
   // 计算当前可见的大纲项
   const visibleHeadings = useMemo(() => {
