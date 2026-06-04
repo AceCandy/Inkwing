@@ -217,10 +217,16 @@ describe('adaptTyporaCss', () => {
     })
 
     expect(result).toContain('body.typora-theme-scope #typora-sidebar{')
+    expect(result).toContain('--typora-sidebar-toolbar-height:120px;')
     expect(result).toContain('border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));')
     expect(result).toContain('width:calc(var(--sidebar-width, 245px) - 15px);')
     expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-content{position:absolute;top:24px;right:0;bottom:15px;left:0;')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-osx-tab{')
+    expect(result).toContain('height:var(--typora-sidebar-toolbar-height, 120px);')
+    expect(result).toContain('border-bottom:1px solid var(--border-color-15, rgba(31, 30, 29, 0.14));')
+    expect(result).toContain('body.typora-theme-scope #typora-sidebar .sidebar-content{position:absolute;top:var(--typora-sidebar-toolbar-height, 120px)!important;right:0;bottom:15px;left:0;')
+    expect(result).toContain('body.typora-theme-scope.mac-os #typora-sidebar .sidebar-content,')
+    expect(result).toContain('body.typora-theme-scope.mac-seamless-mode #typora-sidebar .sidebar-content{top:var(--typora-sidebar-toolbar-height, 120px)!important;}')
     expect(result.trim().endsWith('}')).toBe(true)
   })
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react'
+import React, { useMemo, useCallback, useEffect, useState } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 import './styles.css'
 
@@ -87,6 +87,7 @@ export const Sidebar: React.FC = () => {
 
   // 记录哪些索引的大纲项被折叠了
   const [collapsedIndices, setCollapsedIndices] = useState<Record<number, boolean>>({})
+  const [activeHeadingIndex, setActiveHeadingIndex] = useState<number | null>(null)
 
   // 搜索相关状态
   const [isSearching, setIsSearching] = useState(false)
@@ -102,7 +103,9 @@ export const Sidebar: React.FC = () => {
   }, [])
 
   // 点击大纲项跳转到编辑器中对应的标题
-  const handleHeadingClick = useCallback((text: string) => {
+  const handleHeadingClick = useCallback((text: string, index: number) => {
+    setActiveHeadingIndex(index)
+
     const editorRoot = document.querySelector('.milkdown .editor')
     if (!editorRoot) return
 
@@ -114,6 +117,10 @@ export const Sidebar: React.FC = () => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    setActiveHeadingIndex(null)
+  }, [content])
 
   // 计算当前可见的大纲项
   const visibleHeadings = useMemo(() => {
@@ -138,7 +145,7 @@ export const Sidebar: React.FC = () => {
     nodes.map((node) => {
       const hasChildren = node.children.length > 0
       const isCollapsed = !!collapsedIndices[node.originalIndex]
-      const isActive = node.originalIndex === 0
+      const isActive = activeHeadingIndex === node.originalIndex
       const stateClass = hasChildren
         ? (isCollapsed ? 'outline-item-close' : 'outline-item-open')
         : 'outline-item-signle outline-item-single'
@@ -150,7 +157,7 @@ export const Sidebar: React.FC = () => {
         >
           <div
             className={`outline-item${isActive ? ' outline-item-active' : ''}`}
-            onClick={() => handleHeadingClick(node.text)}
+            onClick={() => handleHeadingClick(node.text, node.originalIndex)}
           >
             <span
               className="outline-expander"
@@ -181,7 +188,10 @@ export const Sidebar: React.FC = () => {
           key={heading.originalIndex}
           className={`outline-item-wrapper outline-h${heading.level} outline-item-signle outline-item-single`}
         >
-          <div className="outline-item" onClick={() => handleHeadingClick(heading.text)}>
+          <div
+            className={`outline-item${activeHeadingIndex === heading.originalIndex ? ' outline-item-active' : ''}`}
+            onClick={() => handleHeadingClick(heading.text, heading.originalIndex)}
+          >
             <span
               className="outline-expander"
               onClick={(e) => {
@@ -190,7 +200,10 @@ export const Sidebar: React.FC = () => {
                 }
               }}
             />
-            <span className="outline-label" data-ref={`n${heading.originalIndex}`}>
+            <span
+              className={`outline-label${activeHeadingIndex === heading.originalIndex ? ' outline-active' : ''}`}
+              data-ref={`n${heading.originalIndex}`}
+            >
               {heading.text}
             </span>
           </div>
