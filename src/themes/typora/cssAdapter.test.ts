@@ -224,7 +224,7 @@ describe('adaptTyporaCss', () => {
     expect(result.trim().endsWith('}')).toBe(true)
   })
 
-  it('adds Typora-like document surface rules with stronger body scope', () => {
+  it('lets imported Typora #write spacing define the document inset', () => {
     const result = adaptTyporaCss('#write { max-width: 752px; }', {
       assetBasePath: '/app/themes/claude',
       toAssetUrl,
@@ -232,7 +232,10 @@ describe('adaptTyporaCss', () => {
 
     expect(result).toContain('body.typora-theme-scope .milkdown-editor')
     expect(result).toContain('body.typora-theme-scope .preview-container')
-    expect(result).toContain('padding:var(--typora-surface-padding, 24px);')
+    expect(result).toContain(
+      'body.typora-theme-scope .milkdown-editor,\nbody.typora-theme-scope .preview-container{padding:0;',
+    )
+    expect(result).not.toContain('padding:var(--typora-surface-padding, 24px);')
     expect(result).toContain('body.typora-theme-scope .milkdown .editor')
     expect(result).toContain('body.typora-theme-scope .preview-content')
   })

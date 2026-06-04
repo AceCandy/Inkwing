@@ -27,7 +27,7 @@ const TYPORA_APP_COMPAT_CSS = `
 ${TYPORA_APP_CONTENT_SCOPES.join(', ')}{box-sizing:border-box;}
 ${TYPORA_APP_CONTENT_SCOPES.map((scope) => `${scope} > *`).join(', ')}{max-width:100%;}
 ${TYPORA_BODY_SCOPE} .milkdown-editor,
-${TYPORA_BODY_SCOPE} .preview-container{padding:var(--typora-surface-padding, 24px);background-color:var(--bg-primary, var(--theme-editor-bg));}
+${TYPORA_BODY_SCOPE} .preview-container{padding:0;background-color:var(--bg-primary, var(--theme-editor-bg));}
 ${TYPORA_BODY_SCOPE} #typora-sidebar{position:relative;width:calc(var(--sidebar-width, 245px) - 15px);margin:15px 0 15px 15px;height:calc(100% - 30px);padding-top:0;background-image:linear-gradient(to top, var(--sidebar-gradient-from, rgba(245, 244, 237, 0.05)), var(--sidebar-gradient-to, rgba(245, 244, 237, 0.3)));border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));border-radius:15px;box-shadow:var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%), 0 8px 18px -14px rgb(31 30 29 / 18%));font-family:var(--font-sans);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}
 ${TYPORA_BODY_SCOPE} #typora-sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
