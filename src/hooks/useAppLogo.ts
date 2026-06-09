@@ -26,9 +26,9 @@ export function useAppLogo() {
       }
 
       const themeId = currentTheme.toLowerCase()
-      if (themeId === 'light') {
+      if (themeId.includes('light') || themeId.includes('latte')) {
         setLogoSrc(logoLight)
-      } else if (themeId === 'default' || themeId.includes('dark') || themeId.includes('night') || themeId.includes('nord')) {
+      } else if (themeId.includes('dark') || themeId.includes('night') || themeId.includes('nord') || themeId.includes('mocha')) {
         setLogoSrc(logoDark)
       } else {
         setLogoSrc(logoLight)

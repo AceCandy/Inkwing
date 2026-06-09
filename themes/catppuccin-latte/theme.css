@@ -1,34 +1,187 @@
-/* Catppuccin Latte Theme */
+/* Catppuccin Latte Typora Theme */
 :root {
-  /* Colors */
-  --theme-editor-bg: #eff1f5;
-  --theme-editor-bg-secondary: #e6e9ef;
-  --theme-preview-bg: #eff1f5;
-  --theme-text-primary: #4c4f69;
-  --theme-text-secondary: #6c6f85;
-  --theme-text-muted: #9ca0b0;
-  --theme-accent: #1e66f5;
-  --theme-accent-hover: #2a7ae9;
-  --theme-border: #ccd0da;
-  --theme-success: #40a02b;
-  --theme-warning: #df8e1d;
-  --theme-error: #d20f39;
-  --theme-code-bg: #e6e9ef;
-  --theme-code-text: #4c4f69;
-  --theme-link: #1e66f5;
-  --theme-link-hover: #2a7ae9;
-  --theme-blockquote-bg: #e6e9ef;
-  --theme-blockquote-border: #1e66f5;
-  --theme-table-border: #ccd0da;
-  --theme-table-header-bg: #e6e9ef;
-  --theme-table-row-hover: #dce0e8;
+  --bg-color: #eff1f5;
+  --text-color: #4c4f69;
+  --font-color: #4c4f69;
+  --sidebar-font-color: #6c6f85;
+  --border-color: #ccd0da;
+  --window-border: 1px solid #ccd0da;
+  --item-hover-bg-color: #dce0e8;
+  --item-hover-text-color: #4c4f69;
+  --active-file-bg-color: #dce0e8;
+  --active-file-text-color: #4c4f69;
+  --primary-color: #1e66f5;
+  --LOGO-color: #1e66f5;
+  --hover-color: #dce0e8;
+  --select-text-bg-color: rgba(30, 102, 245, 0.2);
+  --select-text-font-color: #4c4f69;
+  --code-bg-color: #e6e9ef;
+  --code-font-color: #4c4f69;
+  --pre-bg-color: #e6e9ef;
+  --pre-border-color: #ccd0da;
+  --pre-inputfont-color: #4c4f69;
+  --quote-font-color: #5c5f77;
+  --quote-boder: #1e66f5;
+  --table-th-border: #ccd0da;
+  --table-td-border: #ccd0da;
+  --hr-color: #ccd0da;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --monospace: var(--font-mono);
+}
 
-  /* Typography */
-  --theme-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --theme-font-family-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  --theme-font-size: 16px;
-  --theme-line-height: 1.75;
-  --theme-h1-size: 2em;
-  --theme-h2-size: 1.5em;
-  --theme-h3-size: 1.25em;
+html,
+body {
+  background: var(--bg-color);
+  color: var(--font-color);
+  font-family: var(--font-sans);
+}
+
+#write {
+  max-width: 860px;
+  padding: 40px 30px 70px;
+  color: var(--font-color);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+#write h1,
+#write h2,
+#write h3,
+#write h4,
+#write h5,
+#write h6 {
+  color: #3c3f58;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+#write h1 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.3em;
+}
+
+#write a {
+  color: #1e66f5;
+}
+
+#write blockquote {
+  margin-left: 0;
+  padding: 0.75em 1em;
+  border-left: 4px solid var(--quote-boder);
+  background: rgba(220, 224, 232, 0.72);
+  color: var(--quote-font-color);
+}
+
+#write code,
+tt {
+  border: 1px solid rgba(204, 208, 218, 0.9);
+  border-radius: 4px;
+  background: var(--code-bg-color);
+  color: var(--code-font-color);
+}
+
+#write pre,
+.md-fences {
+  border: 1px solid var(--pre-border-color);
+  border-radius: 6px;
+  background: var(--pre-bg-color);
+  color: var(--pre-inputfont-color);
+}
+
+#write table th,
+#write table td {
+  border-color: var(--table-td-border);
+}
+
+#write table th {
+  background: #e6e9ef;
+}
+
+#write hr {
+  border-color: var(--hr-color);
+}
+
+#typora-sidebar {
+  background: #e6e9ef;
+  border-right: 1px solid var(--border-color);
+  color: var(--sidebar-font-color);
+  font-family: var(--font-sans);
+}
+
+#typora-sidebar .sidebar-tabs {
+  border-bottom: var(--window-border);
+  color: var(--sidebar-font-color);
+}
+
+#typora-sidebar .sidebar-tab-current,
+#typora-sidebar .sidebar-tab.active {
+  color: var(--font-color);
+}
+
+#typora-sidebar .sidebar-tab-btn:hover,
+#typora-sidebar .sidebar-tab-btn:focus-visible,
+#ty-sidebar-footer .sidebar-footer-item:hover {
+  color: var(--font-color);
+  background: var(--hover-color);
+}
+
+#file-library-search-input {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #eff1f5;
+  color: var(--font-color);
+}
+
+#outline-content,
+.outline-content {
+  color: var(--sidebar-font-color);
+  font-size: 14px;
+}
+
+.outline-content li,
+.outline-content ul {
+  list-style: none;
+}
+
+.outline-content li .outline-item {
+  border-radius: 5px;
+  color: inherit;
+}
+
+.outline-content li .outline-label {
+  color: inherit;
+  text-decoration: none;
+}
+
+.outline-item:hover,
+.outline-item:hover > .outline-label,
+.outline-item-active,
+.outline-item-active > .outline-label {
+  background: var(--hover-color);
+  color: var(--font-color);
+}
+
+.outline-item > .outline-expander::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-right: 1.2px solid currentColor;
+  border-bottom: 1.2px solid currentColor;
+  opacity: 0.78;
+}
+
+.outline-item-close > .outline-item > .outline-expander::before {
+  transform: rotate(-45deg);
+}
+
+.outline-item-open > .outline-item > .outline-expander::before {
+  transform: rotate(45deg);
+}
+
+.outline-content li .outline-item::before,
+.outline-item-open > .outline-children::before {
+  border-color: var(--LOGO-color);
 }

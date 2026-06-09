@@ -7,7 +7,6 @@ import {
   type ThemeOption,
 } from '../../themes'
 import { importTyporaTheme } from '../../themes/typora/api'
-import { isTyporaThemeOption } from '../../themes/typora/types'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
 import { useLanguage } from '../../i18n'
 import { useAppLogo } from '../../hooks/useAppLogo'
@@ -162,51 +161,21 @@ export const SettingsModal: React.FC = () => {
                 </div>
                 <div className="theme-grid">
                   {themes.map((theme) => {
-                    const isTypora = isTyporaThemeOption(theme)
-
                     return (
                       <button
                         key={theme.id}
-                        className={`theme-card ${currentTheme === theme.id ? 'active' : ''} ${isTypora ? 'external' : ''}`}
+                        className={`theme-card external ${currentTheme === theme.id ? 'active' : ''}`}
                         onClick={() => handleThemeChange(theme.id)}
                       >
-                        {isTypora ? (
-                          <div className="theme-preview typora-preview">
-                            <div className="theme-preview-header" />
-                            <div className="theme-preview-content">
-                              <div className="theme-preview-line" />
-                              <div className="theme-preview-line short" />
-                            </div>
+                        <div className="theme-preview typora-preview">
+                          <div className="theme-preview-header" />
+                          <div className="theme-preview-content">
+                            <div className="theme-preview-line" />
+                            <div className="theme-preview-line short" />
                           </div>
-                        ) : (
-                          <div
-                            className="theme-preview"
-                            style={{
-                              backgroundColor: theme.colors.editorBgSecondary,
-                              borderColor: theme.colors.border,
-                            }}
-                          >
-                            <div
-                              className="theme-preview-header"
-                              style={{
-                                backgroundColor: theme.colors.editorBg,
-                                borderBottom: `1px solid ${theme.colors.border}`,
-                              }}
-                            />
-                            <div className="theme-preview-content">
-                              <div
-                                className="theme-preview-line"
-                                style={{ backgroundColor: theme.colors.textSecondary }}
-                              />
-                              <div
-                                className="theme-preview-line short"
-                                style={{ backgroundColor: theme.colors.textSecondary }}
-                              />
-                            </div>
-                          </div>
-                        )}
+                        </div>
                         <span className="theme-card-name">{theme.name}</span>
-                        {isTypora && <span className="theme-card-meta">{theme.packageName}</span>}
+                        <span className="theme-card-meta">{theme.packageName}</span>
                       </button>
                     )
                   })}

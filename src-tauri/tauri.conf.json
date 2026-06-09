@@ -5,30 +5,38 @@
   "identifier": "com.acecandy.inkwing",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeDevCommand": "npm run dev -- --host 127.0.0.1 --port 1420",
     "beforeBuildCommand": "npm run build"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
+        "create": false,
         "title": "",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
         "minHeight": 600,
         "titleBarStyle": "Overlay",
-        "transparent": true
+        "transparent": true,
+        "visible": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/themes/typora/**"]
+      }
     }
   },
-  "bundle": {
+    "bundle": {
     "active": true,
     "targets": "all",
+    "resources": ["../themes"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

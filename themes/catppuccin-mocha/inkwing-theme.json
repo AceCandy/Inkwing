@@ -1,0 +1,14 @@
+{
+  "id": "catppuccin-mocha",
+  "name": "Catppuccin Mocha",
+  "type": "typora",
+  "basePath": "themes/catppuccin-mocha",
+  "variants": [
+    {
+      "id": "theme",
+      "name": "Theme",
+      "cssFile": "theme.css"
+    }
+  ],
+  "importedAt": "bundled"
+}

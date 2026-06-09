@@ -1,8 +1,9 @@
 import { useEffect, useCallback } from 'react'
 import { useEditorStore } from '../stores/editorStore'
 import { invoke } from '@tauri-apps/api/core'
-import { open, save } from '@tauri-apps/plugin-dialog'
+import { save } from '@tauri-apps/plugin-dialog'
 import { useLanguage } from '../i18n'
+import { openMarkdownFileForEditorState } from '../utils/openMarkdownFile'
 
 type ShortcutHandler = () => void
 
@@ -31,11 +32,8 @@ const isModifierPressed = (e: KeyboardEvent): boolean => {
  */
 export const useKeyboardShortcuts = () => {
   const {
-    filePath,
-    content,
     setMode,
     toggleSidebar,
-    setShowSettings,
   } = useEditorStore()
   const { t } = useLanguage()
 
@@ -44,27 +42,10 @@ export const useKeyboardShortcuts = () => {
     useEditorStore.getState().newFile()
   }, [])
 
-  // 打开文件 - 打开新窗口
+  // 打开文件：初始页复用当前窗口；已有文档时创建新窗口。
   const handleOpen = useCallback(async () => {
     try {
-      const selected = await open({
-        multiple: false,
-        filters: [
-          {
-            name: 'Markdown',
-            extensions: ['md', 'markdown', 'mdown', 'mkd'],
-          },
-          {
-            name: 'All Files',
-            extensions: ['*'],
-          },
-        ],
-      })
-
-      if (selected) {
-        const path = typeof selected === 'string' ? selected : (selected as { path: string }).path
-        await invoke('create_window', { filePath: path })
-      }
+      await openMarkdownFileForEditorState()
     } catch (err) {
       console.error('Failed to open file:', err)
     }

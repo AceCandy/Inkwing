@@ -2,24 +2,27 @@ import type { TyporaCssAdaptOptions } from './types'
 
 const TYPORA_SCOPE = '.typora-theme-scope'
 const TYPORA_BODY_SCOPE = 'body.typora-theme-scope'
-const TYPORA_EDITOR_SCOPE = `${TYPORA_SCOPE} .milkdown .editor`
+const TYPORA_EDITOR_SCOPE = `${TYPORA_BODY_SCOPE} #write`
 const TYPORA_PREVIEW_SCOPE = `${TYPORA_SCOPE} .preview-content`
 const TYPORA_SIDEBAR_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar`
 const TYPORA_RESIZER_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar-resizer`
 const TYPORA_OUTLINE_SCOPE = `${TYPORA_BODY_SCOPE} #outline-content`
 const TYPORA_CONTENT_SCOPES = [TYPORA_EDITOR_SCOPE, TYPORA_PREVIEW_SCOPE] as const
 const TYPORA_APP_CONTENT_SCOPES = [
-  `${TYPORA_BODY_SCOPE} .milkdown .editor`,
+  TYPORA_EDITOR_SCOPE,
   `${TYPORA_BODY_SCOPE} .preview-content`,
 ] as const
+const TYPORA_DEFAULT_FONT_SIZE = '17px'
 
 const TYPORA_CONTENT_RESET_CSS = `
+${TYPORA_CONTENT_SCOPES.join(', ')}{font-size:var(--typora-font-size, ${TYPORA_DEFAULT_FONT_SIZE});}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} h1`).join(', ')}{border-bottom:0;padding-bottom:0;}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} h1, ${scope} h2, ${scope} h3, ${scope} h4, ${scope} h5, ${scope} h6`).join(', ')}{color:inherit;}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} blockquote`).join(', ')}{background:transparent;border-radius:0;}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} blockquote p`).join(', ')}{color:inherit;}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} pre`).join(', ')}{position:relative;background:transparent;border:0;border-radius:0;}
 ${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} pre code`).join(', ')}{background:transparent;border:0;color:inherit;padding:0;}
+${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} li::marker`).join(', ')}{color:currentColor;font-weight:inherit;}
 `
 
 // 这些规则补齐 Inkwing 与 Typora shell 的结构差异，避免组件默认样式压过导入主题。
@@ -27,42 +30,15 @@ const TYPORA_APP_COMPAT_CSS = `
 ${TYPORA_APP_CONTENT_SCOPES.join(', ')}{box-sizing:border-box;}
 ${TYPORA_APP_CONTENT_SCOPES.map((scope) => `${scope} > *`).join(', ')}{max-width:100%;}
 ${TYPORA_BODY_SCOPE} .milkdown-editor,
-${TYPORA_BODY_SCOPE} .preview-container{padding:0;background-color:var(--bg-primary, var(--theme-editor-bg));}
-${TYPORA_BODY_SCOPE} #typora-sidebar{--typora-sidebar-toolbar-height:120px;position:relative;width:calc(var(--sidebar-width, 245px) - 15px);margin:15px 0 15px 15px;height:calc(100% - 30px);padding-top:0;background-image:linear-gradient(to top, var(--sidebar-gradient-from, rgba(245, 244, 237, 0.05)), var(--sidebar-gradient-to, rgba(245, 244, 237, 0.3)));border:0.5px solid var(--border-color-15, rgba(31, 30, 29, 0.14));border-radius:15px;box-shadow:var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%), 0 8px 18px -14px rgb(31 30 29 / 18%));font-family:var(--font-sans);}
+${TYPORA_BODY_SCOPE} .preview-container{padding:0;}
 ${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}
-${TYPORA_BODY_SCOPE} #typora-sidebar:hover{box-shadow:var(--box-shadow-userinput-hover, var(--box-shadow-userinput, 0 18px 48px -28px rgb(31 30 29 / 32%)));}
-${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-osx-tab{position:absolute;top:0;right:0;left:0;z-index:60;height:var(--typora-sidebar-toolbar-height, 120px);display:block;background:inherit;border-bottom:1px solid var(--border-color-15, rgba(31, 30, 29, 0.14));}
-${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-tabs{position:relative;display:block;height:100%;padding:0;color:var(--sidebar-font-color, var(--text-secondary));font-size:0;line-height:normal;}
-${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-tab{display:none;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidepanel-segmented-input-outline{position:absolute;top:0;right:84px;left:84px;display:flex;align-items:center;justify-content:center;height:100%;min-width:0;padding:0;color:var(--font-color, var(--text-primary));font-size:24px;font-weight:500;line-height:1;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #switch-sidebar-icon,
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidebar-search-btn{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;width:84px;height:100%;color:var(--sidebar-font-color, var(--text-secondary));}
-${TYPORA_BODY_SCOPE} #typora-sidebar #switch-sidebar-icon{left:0;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidebar-search-btn{right:0;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #switch-sidebar-icon .ty-file-tree,
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidebar-search-btn .ion-ios7-search-strong{position:relative;display:block;width:32px;height:32px;color:inherit;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #switch-sidebar-icon .ty-file-tree::before{content:"";position:absolute;left:7px;top:7px;width:18px;height:4px;background:currentColor;box-shadow:0 8px 0 currentColor,0 16px 0 currentColor;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #switch-sidebar-icon .ty-file-tree::after{content:"";position:absolute;left:7px;top:7px;width:4px;height:20px;background:currentColor;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidebar-search-btn .ion-ios7-search-strong::before{content:"";position:absolute;left:5px;top:5px;width:16px;height:16px;border:3px solid currentColor;border-radius:50%;box-sizing:border-box;}
-${TYPORA_BODY_SCOPE} #typora-sidebar #sidebar-search-btn .ion-ios7-search-strong::after{content:"";position:absolute;left:20px;top:20px;width:11px;height:3px;background:currentColor;border-radius:999px;transform:rotate(45deg);transform-origin:left center;}
-${TYPORA_BODY_SCOPE} #typora-sidebar .sidebar-content{position:absolute;top:var(--typora-sidebar-toolbar-height, 120px)!important;right:0;bottom:15px;left:0;padding:0;overflow:auto;min-height:0;}
-${TYPORA_BODY_SCOPE}.mac-os #typora-sidebar .sidebar-content,
-${TYPORA_BODY_SCOPE}.mac-seamless-mode #typora-sidebar .sidebar-content{top:var(--typora-sidebar-toolbar-height, 120px)!important;}
-${TYPORA_OUTLINE_SCOPE}{height:100%;max-height:100%;box-sizing:border-box;overflow:auto!important;padding:14px 14px 22px 17px;font-size:14px!important;color:var(--sidebar-font-color, var(--text-secondary));}
-${TYPORA_OUTLINE_SCOPE}{list-style:none;margin:0;}
-${TYPORA_OUTLINE_SCOPE} ul{list-style:none;margin:0;padding-left:0;}
-${TYPORA_OUTLINE_SCOPE} li{position:relative;z-index:30;margin:0;padding:0;}
-${TYPORA_OUTLINE_SCOPE} li ul{position:relative;z-index:48;margin-left:18px;margin-top:0!important;padding:0;}
-${TYPORA_OUTLINE_SCOPE} li .outline-item{display:block!important;position:relative;z-index:50;margin:0 0 3px 7px;width:calc(100% - 4px);border:none;border-radius:5px;line-height:1;padding:0 0 0 4px;background:transparent;}
-${TYPORA_BODY_SCOPE} .outline-item > .outline-expander{display:block!important;float:left;width:auto;height:0;min-width:0;padding-left:0;background:transparent;color:var(--sidebar-font-color, var(--text-secondary));}
-${TYPORA_OUTLINE_SCOPE} li .outline-label{display:inline-block;max-width:calc(100% - 12px);border-radius:4px;padding:7px 7px 7px 8px;font-size:14px!important;font-weight:var(--sidebar-font-weight, 430)!important;line-height:1.2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;word-wrap:normal;word-break:keep-all;white-space:nowrap;text-decoration:none;color:var(--sidebar-font-color, var(--text-secondary));opacity:1;}
-${TYPORA_BODY_SCOPE} .outline-item-single .outline-label,
-${TYPORA_BODY_SCOPE} .outline-item-single.outline-item-open .outline-label{padding-left:0!important;}
-${TYPORA_BODY_SCOPE} .outline-item-open > .outline-item > .outline-label{padding-left:11px;}
-${TYPORA_BODY_SCOPE} .outline-item:hover,
-${TYPORA_BODY_SCOPE} .outline-item:hover > .outline-label,
-${TYPORA_BODY_SCOPE} .outline-item-active,
-${TYPORA_BODY_SCOPE} .outline-item-active > .outline-label{background:var(--hover-color)!important;}
+${TYPORA_BODY_SCOPE} #typora-sidebar #file-library-search{display:none;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline.ty-on-search #file-library-search-result{display:none;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline.ty-on-search #outline-content{height:100%!important;max-height:100%!important;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline #file-library{display:none;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-files #outline-content{display:none;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline #outline-content{display:block;}
+${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-files #file-library{display:block;}
 `
 
 const CODE_FENCE_BLOCK_TARGETS = [
@@ -99,6 +75,10 @@ const TYPORA_SHELL_SELECTOR_PATTERNS = [
   /(^|[^\w-])\.ty-/i,
   /(^|[^\w-])\.CodeMirror(?:$|[-\w])/i,
 ]
+const TYPORA_SUPPORTED_SHELL_SELECTOR_PATTERNS = [
+  /(^|[^\w-])\.stopselect\.dropmenu\.sidebar-menu\b/i,
+  /(^|[^\w-])\.ty-sidebar-search-panel\b/i,
+]
 
 const PASSTHROUGH_AT_RULES = new Set(['@font-face', '@keyframes', '@-webkit-keyframes', '@-moz-keyframes'])
 const TYPORA_BODY_STATE_CLASSES = new Set([
@@ -112,6 +92,12 @@ const TYPORA_BODY_STATE_CLASSES = new Set([
   'no-collapse-outline',
   'os-windows',
   'pin-outline',
+  'ty-on-outline-filter',
+  'ty-on-search',
+  'ty-show-outline-filter',
+  'ty-show-search',
+])
+const TYPORA_SIDEBAR_STATE_CLASSES = new Set([
   'ty-on-outline-filter',
   'ty-on-search',
   'ty-show-outline-filter',
@@ -305,6 +291,11 @@ function transformSelector(selector: string): string[] {
     return bodyStateSelectors
   }
 
+  const supportedShellSelectors = transformSupportedTyporaShellSelector(trimmedSelector)
+  if (supportedShellSelectors) {
+    return supportedShellSelectors
+  }
+
   if (isTyporaShellSelector(trimmedSelector)) {
     return []
   }
@@ -366,6 +357,14 @@ function transformTyporaBodyStateSelector(selector: string): string[] | null {
   const bodyStateSelector = extractLeadingTyporaBodyStateSelector(selector)
   if (!bodyStateSelector) {
     return null
+  }
+
+  const bodyClasses = bodyStateSelector.classes.filter((className) => !TYPORA_SIDEBAR_STATE_CLASSES.has(className))
+  const sidebarClasses = bodyStateSelector.classes.filter((className) => TYPORA_SIDEBAR_STATE_CLASSES.has(className))
+  if (sidebarClasses.length > 0) {
+    return [
+      `${buildTyporaBodyScope(bodyClasses)} ${buildTyporaSidebarStateScope(sidebarClasses)} ${bodyStateSelector.selector}`,
+    ]
   }
 
   return [`${buildTyporaBodyScope(bodyStateSelector.classes)} ${bodyStateSelector.selector}`]
@@ -455,6 +454,18 @@ function parseClassOnlySelector(selector: string): string[] | null {
 
 function buildTyporaBodyScope(classes: string[]): string {
   return `${TYPORA_BODY_SCOPE}${classes.map((className) => `.${className}`).join('')}`
+}
+
+function buildTyporaSidebarStateScope(classes: string[]): string {
+  return `#typora-sidebar${classes.map((className) => `.${className}`).join('')}`
+}
+
+function transformSupportedTyporaShellSelector(selector: string): string[] | null {
+  if (!TYPORA_SUPPORTED_SHELL_SELECTOR_PATTERNS.some((pattern) => pattern.test(selector))) {
+    return null
+  }
+
+  return [scopeSelector(selector)]
 }
 
 function transformTyporaInlineSelector(selector: string): string[] | null {

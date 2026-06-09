@@ -181,6 +181,41 @@ fn typora_themes_root(app: &AppHandle) -> Result<PathBuf, String> {
         .map(|path| path.join("themes").join("typora"))
 }
 
+fn bundled_typora_themes_root(app: &AppHandle) -> Option<PathBuf> {
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let resource_themes = resource_dir.join("themes");
+        if resource_themes.exists() {
+            return Some(resource_themes);
+        }
+    }
+
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .map(|workspace_root| workspace_root.join("themes"))
+        .filter(|themes_root| themes_root.exists())
+}
+
+fn typora_theme_roots_for_list(app: &AppHandle) -> Result<Vec<PathBuf>, String> {
+    let mut roots = Vec::new();
+
+    if let Some(bundled_root) = bundled_typora_themes_root(app) {
+        roots.push(bundled_root);
+    }
+    roots.push(typora_themes_root(app)?);
+
+    Ok(roots)
+}
+
+fn typora_theme_roots_for_read(app: &AppHandle) -> Result<Vec<PathBuf>, String> {
+    let mut roots = vec![typora_themes_root(app)?];
+
+    if let Some(bundled_root) = bundled_typora_themes_root(app) {
+        roots.push(bundled_root);
+    }
+
+    Ok(roots)
+}
+
 fn cleanup_dir(path: &Path) {
     let _ = fs::remove_dir_all(path);
 }
@@ -240,8 +275,14 @@ fn read_manifest(theme_dir: &Path) -> Result<TyporaThemePackage, String> {
     let content = fs::read_to_string(&manifest)
         .map_err(|e| format!("Failed to read manifest {}: {}", manifest.display(), e))?;
 
-    serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse manifest {}: {}", manifest.display(), e))
+    let mut package: TyporaThemePackage = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse manifest {}: {}", manifest.display(), e))?;
+
+    if Path::new(&package.base_path).is_relative() {
+        package.base_path = theme_dir.to_string_lossy().to_string();
+    }
+
+    Ok(package)
 }
 
 fn write_manifest(theme_dir: &Path, package: &TyporaThemePackage) -> Result<(), String> {
@@ -421,8 +462,8 @@ pub fn import_typora_theme(
 
 #[tauri::command]
 pub fn list_typora_themes(app: AppHandle) -> Result<Vec<TyporaThemePackage>, String> {
-    let root = typora_themes_root(&app)?;
-    list_typora_theme_packages(&root)
+    let roots = typora_theme_roots_for_list(&app)?;
+    list_typora_theme_packages_from_roots(&roots)
 }
 
 #[tauri::command]
@@ -431,8 +472,8 @@ pub fn read_typora_theme_css(
     theme_id: String,
     css_file: String,
 ) -> Result<TyporaThemeCss, String> {
-    let root = typora_themes_root(&app)?;
-    read_typora_theme_css_from_root(&root, &theme_id, &css_file)
+    let roots = typora_theme_roots_for_read(&app)?;
+    read_typora_theme_css_from_roots(&roots, &theme_id, &css_file)
 }
 
 pub(crate) fn list_typora_theme_packages(root: &Path) -> Result<Vec<TyporaThemePackage>, String> {
@@ -474,6 +515,23 @@ pub(crate) fn list_typora_theme_packages(root: &Path) -> Result<Vec<TyporaThemeP
         }
 
         packages.push(read_manifest(&theme_dir)?);
+    }
+
+    packages.sort_by(|left, right| left.name.cmp(&right.name).then(left.id.cmp(&right.id)));
+    Ok(packages)
+}
+
+pub(crate) fn list_typora_theme_packages_from_roots<P: AsRef<Path>>(
+    roots: &[P],
+) -> Result<Vec<TyporaThemePackage>, String> {
+    let mut packages = Vec::new();
+
+    for root in roots {
+        let root = root.as_ref();
+        if !root.exists() {
+            continue;
+        }
+        packages.extend(list_typora_theme_packages(root)?);
     }
 
     packages.sort_by(|left, right| left.name.cmp(&right.name).then(left.id.cmp(&right.id)));
@@ -534,6 +592,38 @@ pub(crate) fn read_typora_theme_css_from_root(
     })
 }
 
+pub(crate) fn read_typora_theme_css_from_roots<P: AsRef<Path>>(
+    roots: &[P],
+    theme_id: &str,
+    css_file: &str,
+) -> Result<TyporaThemeCss, String> {
+    is_safe_path_segment(theme_id)?;
+    validate_css_file(css_file)?;
+
+    let mut errors = Vec::new();
+    for root in roots {
+        let root = root.as_ref();
+        if !root.exists() {
+            continue;
+        }
+
+        match read_typora_theme_css_from_root(root, theme_id, css_file) {
+            Ok(css) => return Ok(css),
+            Err(error) => errors.push(error),
+        }
+    }
+
+    Err(if errors.is_empty() {
+        format!("Typora theme {} was not found", theme_id)
+    } else {
+        format!(
+            "Typora theme {} was not found: {}",
+            theme_id,
+            errors.join("; ")
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -561,6 +651,32 @@ mod tests {
         {
             std::os::windows::fs::symlink_dir(target, link).unwrap();
         }
+    }
+
+    fn write_theme_package(root: &Path, id: &str, name: &str, css: &str) -> PathBuf {
+        let theme_dir = root.join(id);
+        fs::create_dir_all(&theme_dir).unwrap();
+        fs::write(theme_dir.join("theme.css"), css).unwrap();
+
+        let package = TyporaThemePackage {
+            id: id.to_string(),
+            name: name.to_string(),
+            theme_type: "typora".to_string(),
+            base_path: theme_dir.to_string_lossy().to_string(),
+            variants: vec![TyporaThemeVariant {
+                id: "theme".to_string(),
+                name: "Theme".to_string(),
+                css_file: "theme.css".to_string(),
+            }],
+            imported_at: "bundled".to_string(),
+        };
+        fs::write(
+            manifest_path(&theme_dir),
+            serde_json::to_string_pretty(&package).unwrap(),
+        )
+        .unwrap();
+
+        theme_dir
     }
 
     #[test]
@@ -635,6 +751,61 @@ mod tests {
         assert!(err.contains("Missing Typora theme manifest"));
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn list_roots_merges_bundled_and_imported_typora_css_packages() {
+        let bundled_root = unique_temp_dir("list-roots-bundled");
+        let imported_root = unique_temp_dir("list-roots-imported");
+        write_theme_package(
+            &bundled_root,
+            "catppuccin-mocha",
+            "Catppuccin Mocha",
+            "body {}",
+        );
+        write_theme_package(&imported_root, "claude", "Claude", "body {}");
+
+        let packages =
+            list_typora_theme_packages_from_roots(&[&bundled_root, &imported_root]).unwrap();
+
+        assert_eq!(
+            packages
+                .iter()
+                .map(|package| package.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["catppuccin-mocha", "claude"],
+        );
+        assert!(packages
+            .iter()
+            .all(|package| package.theme_type == "typora"));
+
+        let _ = fs::remove_dir_all(&bundled_root);
+        let _ = fs::remove_dir_all(&imported_root);
+    }
+
+    #[test]
+    fn read_roots_can_load_bundled_typora_css_when_not_imported() {
+        let bundled_root = unique_temp_dir("read-roots-bundled");
+        let imported_root = unique_temp_dir("read-roots-imported");
+        write_theme_package(
+            &bundled_root,
+            "catppuccin-mocha",
+            "Catppuccin Mocha",
+            "#write { color: var(--font-color); }",
+        );
+
+        let css = read_typora_theme_css_from_roots(
+            &[&imported_root, &bundled_root],
+            "catppuccin-mocha",
+            "theme.css",
+        )
+        .unwrap();
+
+        assert!(css.css.contains("#write { color: var(--font-color); }"));
+        assert!(css.base_path.ends_with("catppuccin-mocha"));
+
+        let _ = fs::remove_dir_all(&bundled_root);
+        let _ = fs::remove_dir_all(&imported_root);
     }
 
     #[test]

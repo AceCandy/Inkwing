@@ -8,6 +8,10 @@ const ACTIVE_TYPORA_THEME_STYLE_ID = 'inkwing-active-typora-theme'
 const ACTIVE_TYPORA_SHELL_STYLE_ID = 'inkwing-active-typora-shell-theme'
 const TYPORA_BODY_CLASS = 'typora-theme-scope'
 const TYPORA_BODY_STATE_CLASSES = [
+  'typora-node',
+  'no-collapse-outline',
+  'no-animation',
+  'active-tab-files',
   'allow-file-tree-scroll',
   'active-tab-outline',
   'html-for-mac',
@@ -16,8 +20,11 @@ const TYPORA_BODY_STATE_CLASSES = [
   'mac-seamless-mode',
   'os-windows',
   'pin-outline',
+  'ty-on-search',
+  'ty-show-search',
 ]
 const TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH = '245px'
+const TYPORA_RUNTIME_DEFAULT_FONT_SIZE = '17px'
 
 function normalizeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/')
@@ -64,7 +71,12 @@ function buildShellThemeCss(variables: Record<string, string>): string {
     return ''
   }
 
-  return `body.${TYPORA_BODY_CLASS} { ${declarations} }`
+  return [
+    `body.${TYPORA_BODY_CLASS} {`,
+    declarations,
+    `font-size: var(--typora-font-size, ${TYPORA_RUNTIME_DEFAULT_FONT_SIZE});`,
+    '}',
+  ].join(' ')
 }
 
 export function getTyporaRuntimeShellVariables(
@@ -76,6 +88,7 @@ export function getTyporaRuntimeShellVariables(
   return {
     '--sidebar-width': TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH,
     '--title-bar-height': isMac ? '28px' : '20px',
+    '--typora-font-size': TYPORA_RUNTIME_DEFAULT_FONT_SIZE,
   }
 }
 
@@ -99,13 +112,15 @@ export function getTyporaRuntimeBodyClasses(
   userAgent = globalThis.navigator?.userAgent ?? '',
 ): string[] {
   const platformClass = getTyporaPlatformBodyClass(platform, userAgent)
-  const classes = [TYPORA_BODY_CLASS]
+  const classes = [TYPORA_BODY_CLASS, 'typora-node']
 
-  // 当前侧栏只有大纲视图，补齐 Typora 主题里常见的 outline 状态选择器。
+  // 当前大纲支持折叠，不能默认挂 no-collapse-outline，否则 Claude 等主题会走扁平大纲样式分支。
   if (platformClass === 'mac-os') {
-    classes.push('allow-file-tree-scroll', 'html-for-mac', 'mac-os-11', 'mac-os', 'mac-seamless-mode')
+    classes.push('allow-file-tree-scroll', 'html-for-mac', 'no-animation', 'mac-os-11', 'mac-os', 'mac-seamless-mode')
   } else if (platformClass) {
-    classes.push(platformClass)
+    classes.push('no-animation', platformClass)
+  } else {
+    classes.push('no-animation')
   }
   classes.push('pin-outline', 'active-tab-outline')
 

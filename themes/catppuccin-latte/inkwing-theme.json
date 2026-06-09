@@ -1,0 +1,14 @@
+{
+  "id": "catppuccin-latte",
+  "name": "Catppuccin Latte",
+  "type": "typora",
+  "basePath": "themes/catppuccin-latte",
+  "variants": [
+    {
+      "id": "theme",
+      "name": "Theme",
+      "cssFile": "theme.css"
+    }
+  ],
+  "importedAt": "bundled"
+}

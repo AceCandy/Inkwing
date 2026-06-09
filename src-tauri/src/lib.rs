@@ -4,6 +4,7 @@ use std::path::Path;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::Emitter;
 use tauri::TitleBarStyle;
+use tauri::WebviewWindowBuilder;
 
 pub mod typora_themes;
 use crate::typora_themes::{import_typora_theme, list_typora_themes, read_typora_theme_css};
@@ -14,6 +15,14 @@ pub struct ThemeInfo {
     pub name: String,
     pub description: String,
     pub path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileTreeNode {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+    pub children: Vec<FileTreeNode>,
 }
 
 #[tauri::command]
@@ -33,6 +42,93 @@ fn get_file_name(path: String) -> String {
         .and_then(|n| n.to_str())
         .unwrap_or("Untitled")
         .to_string()
+}
+
+#[tauri::command]
+fn list_file_tree(file_path: String) -> Result<FileTreeNode, String> {
+    build_file_tree_for_file(Path::new(&file_path))
+}
+
+fn build_file_tree_for_file(file_path: &Path) -> Result<FileTreeNode, String> {
+    let metadata = fs::metadata(file_path).map_err(|_| "File does not exist".to_string())?;
+
+    if !metadata.is_file() {
+        return Err("Path is not a file".to_string());
+    }
+
+    let parent = file_path
+        .parent()
+        .ok_or_else(|| "Failed to get parent directory".to_string())?;
+
+    build_file_tree_for_directory(parent)
+}
+
+fn build_file_tree_for_directory(dir: &Path) -> Result<FileTreeNode, String> {
+    let metadata =
+        fs::metadata(dir).map_err(|e| format!("Failed to read directory metadata: {}", e))?;
+
+    if !metadata.is_dir() {
+        return Err("Path is not a directory".to_string());
+    }
+
+    let mut children = Vec::new();
+    let entries = fs::read_dir(dir).map_err(|e| format!("Failed to read directory: {}", e))?;
+
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        let metadata =
+            fs::metadata(&path).map_err(|e| format!("Failed to read path metadata: {}", e))?;
+
+        if metadata.is_dir() {
+            children.push(build_file_tree_for_directory(&path)?);
+        } else if metadata.is_file() && is_supported_file_tree_file(&path) {
+            children.push(FileTreeNode {
+                name: file_tree_name(&path),
+                path: path_to_string(&path)?,
+                is_dir: false,
+                children: Vec::new(),
+            });
+        }
+    }
+
+    children.sort_by(|left, right| {
+        right
+            .is_dir
+            .cmp(&left.is_dir)
+            .then_with(|| left.name.to_lowercase().cmp(&right.name.to_lowercase()))
+    });
+
+    Ok(FileTreeNode {
+        name: file_tree_name(dir),
+        path: path_to_string(dir)?,
+        is_dir: true,
+        children,
+    })
+}
+
+fn is_supported_file_tree_file(path: &Path) -> bool {
+    let Some(extension) = path.extension().and_then(|value| value.to_str()) else {
+        return false;
+    };
+
+    matches!(
+        extension.to_ascii_lowercase().as_str(),
+        "md" | "markdown" | "mdown" | "mkd" | "txt"
+    )
+}
+
+fn file_tree_name(path: &Path) -> String {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.to_string())
+        .unwrap_or_else(|| path.to_string_lossy().to_string())
+}
+
+fn path_to_string(path: &Path) -> Result<String, String> {
+    path.to_str()
+        .map(|value| value.to_string())
+        .ok_or_else(|| "Failed to convert path to string".to_string())
 }
 
 #[tauri::command]
@@ -178,6 +274,19 @@ pub fn run() {
         .setup(|app| {
             let menu = build_menu(app.handle())?;
             menu.set_as_app_menu()?;
+            let main_window_config = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|window| window.label == "main")
+                .ok_or(tauri::Error::WindowNotFound)?;
+            let main_window = WebviewWindowBuilder::from_config(app.handle(), main_window_config)?
+                .menu(menu)
+                .build()?;
+            // 主窗口由 setup 显式创建和聚焦，避免 dev/release 运行时出现有进程但无可见窗口。
+            main_window.show()?;
+            main_window.set_focus()?;
             Ok(())
         })
         .on_menu_event(|app, event| {
@@ -195,6 +304,7 @@ pub fn run() {
             read_file,
             save_file,
             get_file_name,
+            list_file_tree,
             list_themes,
             read_theme_css,
             import_typora_theme,
@@ -206,4 +316,121 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn unique_temp_dir(name: &str) -> PathBuf {
+        let suffix = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!("inkwing-file-tree-{}-{}", name, suffix))
+    }
+
+    #[test]
+    fn builds_the_open_files_parent_directory_tree() {
+        let root = unique_temp_dir("parent-tree");
+        let drafts_dir = root.join("drafts");
+        fs::create_dir_all(&drafts_dir).unwrap();
+        fs::write(root.join("zeta.md"), "# Zeta").unwrap();
+        fs::write(root.join("current.md"), "# Current").unwrap();
+        fs::write(drafts_dir.join("chapter.md"), "# Chapter").unwrap();
+
+        let tree = build_file_tree_for_file(&root.join("current.md")).unwrap();
+
+        assert_eq!(tree.name, root.file_name().unwrap().to_string_lossy());
+        assert_eq!(tree.path, root.to_string_lossy());
+        assert!(tree.is_dir);
+        assert_eq!(
+            tree.children
+                .iter()
+                .map(|child| child.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["drafts", "current.md", "zeta.md"],
+        );
+
+        let drafts = tree
+            .children
+            .iter()
+            .find(|child| child.name == "drafts")
+            .unwrap();
+        assert!(drafts.is_dir);
+        assert_eq!(drafts.children[0].name, "chapter.md");
+
+        let current = tree
+            .children
+            .iter()
+            .find(|child| child.name == "current.md")
+            .unwrap();
+        assert!(!current.is_dir);
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn filters_file_tree_to_markdown_and_text_files() {
+        let root = unique_temp_dir("filtered-files");
+        let assets_dir = root.join("assets");
+        fs::create_dir_all(&assets_dir).unwrap();
+        fs::write(root.join("current.md"), "# Current").unwrap();
+        fs::write(root.join("draft.markdown"), "# Draft").unwrap();
+        fs::write(root.join("notes.mdown"), "# Notes").unwrap();
+        fs::write(root.join("README.MD"), "# Readme").unwrap();
+        fs::write(root.join("plain.txt"), "Plain text").unwrap();
+        fs::write(root.join("sketch.mkd"), "# Sketch").unwrap();
+        fs::write(root.join("image.png"), "png").unwrap();
+        fs::write(root.join("data.json"), "{}").unwrap();
+        fs::write(assets_dir.join("chapter.TXT"), "Chapter").unwrap();
+        fs::write(assets_dir.join("photo.jpeg"), "jpeg").unwrap();
+
+        let tree = build_file_tree_for_file(&root.join("current.md")).unwrap();
+
+        assert_eq!(
+            tree.children
+                .iter()
+                .map(|child| child.name.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "assets",
+                "current.md",
+                "draft.markdown",
+                "notes.mdown",
+                "plain.txt",
+                "README.MD",
+                "sketch.mkd",
+            ],
+        );
+
+        let assets = tree
+            .children
+            .iter()
+            .find(|child| child.name == "assets")
+            .unwrap();
+        assert_eq!(
+            assets
+                .children
+                .iter()
+                .map(|child| child.name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["chapter.TXT"],
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn rejects_missing_current_file_when_building_file_tree() {
+        let root = unique_temp_dir("missing-file");
+        fs::create_dir_all(&root).unwrap();
+
+        let err = build_file_tree_for_file(&root.join("missing.md")).unwrap_err();
+
+        assert!(err.contains("File does not exist"));
+
+        let _ = fs::remove_dir_all(&root);
+    }
 }

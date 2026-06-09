@@ -5,19 +5,20 @@ import { Preview } from './components/Preview'
 import { SettingsModal } from './components/SettingsModal'
 import { useEditorStore } from './stores/editorStore'
 import { invoke } from '@tauri-apps/api/core'
-import { open } from '@tauri-apps/plugin-dialog'
 import { listen } from '@tauri-apps/api/event'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useAutoSave } from './hooks/useAutoSave'
 import { useLanguage } from './i18n'
 import { applyThemeOption, getThemeOption, refreshExternalThemes } from './themes'
 import { isRunningInTauri } from './utils/tauriRuntime'
+import { openMarkdownFileForEditorState, openMarkdownFileInCurrentWindow } from './utils/openMarkdownFile'
 import { useAppLogo } from './hooks/useAppLogo'
 import './App.css'
 
 export const SIDEBAR_WIDTH_STORAGE_KEY = 'app-sidebar-width'
 export const DEFAULT_SIDEBAR_WIDTH = 245
 const LEGACY_DEFAULT_SIDEBAR_WIDTH = 270
+const LEGACY_CLAUDE_VISIBLE_SIDEBAR_WIDTH = 230
 export const MIN_SIDEBAR_WIDTH = 180
 export const MAX_SIDEBAR_WIDTH = 520
 
@@ -49,7 +50,11 @@ export function getInitialSidebarWidth(storage = getSidebarStorage()): number {
     }
 
     const parsedWidth = Number(storedWidth)
-    if (parsedWidth === LEGACY_DEFAULT_SIDEBAR_WIDTH) {
+    // Claude 主题会用 sidebar-width 减去 15px 作为可视卡片宽度，旧值 230 实际对应 Typora 壳层 245。
+    if (
+      parsedWidth === LEGACY_DEFAULT_SIDEBAR_WIDTH ||
+      parsedWidth === LEGACY_CLAUDE_VISIBLE_SIDEBAR_WIDTH
+    ) {
       return DEFAULT_SIDEBAR_WIDTH
     }
 
@@ -117,7 +122,7 @@ function App() {
   const [tempFileName, setTempFileName] = useState(fileName)
 
   // 右上角字数/阅读时间等统计显示状态
-  const [activeStat, setActiveStat] = useState<'words' | 'chars' | 'lines' | 'readTime'>('words')
+  const [activeStat, setActiveStat] = useState<'words' | 'chars' | 'lines' | 'readTime'>('readTime')
   const [showStatMenu, setShowStatMenu] = useState(false)
 
   // 侧栏宽度需要同步给 Typora 主题变量，保证导入主题和拖拽行为使用同一套尺寸。
@@ -270,17 +275,7 @@ function App() {
           break
         case 'open-file':
           try {
-            const selected = await open({
-              multiple: false,
-              filters: [
-                { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd'] },
-                { name: 'All Files', extensions: ['*'] },
-              ],
-            })
-            if (selected) {
-              const path = typeof selected === 'string' ? selected : (selected as { path: string }).path
-              await invoke('create_window', { filePath: path })
-            }
+            await openMarkdownFileForEditorState()
           } catch (err) {
             console.error('Failed to open file:', err)
           }
@@ -310,17 +305,7 @@ function App() {
   // 欢迎页打开文件
   const handleWelcomeOpen = async () => {
     try {
-      const selected = await open({
-        multiple: false,
-        filters: [
-          { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd'] },
-          { name: 'All Files', extensions: ['*'] },
-        ],
-      })
-      if (selected) {
-        const path = typeof selected === 'string' ? selected : (selected as { path: string }).path
-        await invoke('create_window', { filePath: path })
-      }
+      await openMarkdownFileInCurrentWindow()
     } catch (err) {
       console.error('Failed to open file:', err)
     }
@@ -411,6 +396,7 @@ function App() {
   if (!hasFile) {
     return (
       <div className="app">
+        <div className="welcome-header-bar" data-tauri-drag-region="true" />
         <main className="editor-area">
           <div className="welcome-screen">
             <div className="welcome-content">
@@ -452,6 +438,7 @@ function App() {
       <div className="app-body" ref={appBodyRef} style={sidebarLayoutStyle}>
         {showSidebar && (
           <div className="sidebar-layout" style={sidebarLayoutStyle}>
+            <div className="sidebar-header-drag" data-tauri-drag-region="true" />
             <Sidebar />
             <div
               id="typora-sidebar-resizer"
@@ -471,7 +458,8 @@ function App() {
         )}
         <main className={`editor-area ${!showSidebar ? 'without-sidebar' : ''}`}>
           {/* 顶部标题栏/字数统计（Typora 风格） */}
-          <div
+          <titlebar
+            id="top-titlebar"
             className={`editor-header-bar ${!showSidebar ? 'has-native-buttons' : ''}`}
             data-tauri-drag-region="true"
             data-typora-node="titlebar"
@@ -481,6 +469,7 @@ function App() {
               style={{
                 left: showSidebar ? `calc(50% - ${sidebarWidth / 2}px)` : '50%'
               }}
+              data-tauri-drag-region="true"
             >
               {isEditingName ? (
                 <input
@@ -498,12 +487,10 @@ function App() {
                   autoFocus
                 />
               ) : (
-                <div className="header-filename-display" onClick={() => setIsEditingName(true)}>
-                  <svg className="header-file-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  <span className="header-filename-text">{fileName}</span>
+                <div className="header-filename-display" onClick={() => setIsEditingName(true)} data-tauri-drag-region="true">
+                  <span className="header-file-icon ty-file-icon ty-fi-markdown" aria-hidden="true" data-tauri-drag-region="true" />
+                  <span id="title-text" className="header-filename-text title-text" data-tauri-drag-region="true">{fileName}</span>
+                  <span className="header-title-caret fa fa-caret-down" aria-hidden="true" data-tauri-drag-region="true" />
                   {isModified && <span className="header-modified-dot" title="未保存" />}
                 </div>
               )}
@@ -553,9 +540,9 @@ function App() {
                 )}
               </div>
             </div>
-          </div>
+          </titlebar>
 
-          <div className="typora-content-shell" data-typora-node="content">
+          <content className="typora-content-shell" data-typora-node="content">
             {mode === 'wysiwyg' ? (
               <MilkdownEditor />
             ) : (
@@ -575,7 +562,7 @@ function App() {
                 </div>
               </div>
             )}
-          </div>
+          </content>
         </main>
       </div>
       {showSettings && <SettingsModal />}

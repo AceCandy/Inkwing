@@ -29,7 +29,7 @@
   height: 100%;
 }
 
-.sidebar-layout #typora-sidebar {
+body:not(.typora-theme-scope) .sidebar-layout #typora-sidebar {
   width: 100%;
 }
 
@@ -284,6 +284,17 @@
   opacity: 0.5;
 }
 
+/* 欢迎页顶部的透明拖拽热区 */
+.welcome-header-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--title-bar-height, 28px);
+  z-index: 100;
+  pointer-events: auto;
+}
+
 /* 顶部 TitleBar 样式 */
 .editor-header-bar {
   display: flex;
@@ -334,8 +345,43 @@
 }
 
 .header-file-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
   color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1;
   opacity: 0.8;
+  flex: 0 0 13px;
+}
+
+/* Typora 标题栏使用 ty-file 图标字体；没有该字体时仍保留 MD 文件骨架。 */
+.header-file-icon.ty-fi-markdown::before {
+  content: "MD";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  box-sizing: border-box;
+  font-size: 5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.header-title-caret {
+  margin-left: -2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.72;
+  flex: 0 0 auto;
 }
 
 .header-filename-text {

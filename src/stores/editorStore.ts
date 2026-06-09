@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { migrateLegacyThemeId } from '../themes/typora/bundled'
 
 export type EditorMode = 'wysiwyg' | 'split'
 
@@ -6,9 +7,9 @@ const APP_THEME_STORAGE_KEY = 'app-theme'
 
 function getStoredTheme(): string {
   try {
-    return localStorage.getItem(APP_THEME_STORAGE_KEY) || 'default'
+    return migrateLegacyThemeId(localStorage.getItem(APP_THEME_STORAGE_KEY))
   } catch {
-    return 'default'
+    return migrateLegacyThemeId(null)
   }
 }
 
@@ -130,8 +131,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleSidebar: () => set((state) => ({ showSidebar: !state.showSidebar })),
   toggleLineNumbers: () => set((state) => ({ showLineNumbers: !state.showLineNumbers })),
   setTheme: (theme) => {
-    persistTheme(theme)
-    set({ currentTheme: theme })
+    const nextTheme = migrateLegacyThemeId(theme)
+    persistTheme(nextTheme)
+    set({ currentTheme: nextTheme })
   },
   setThemeError: (themeError) => set({ themeError }),
   setAutoSaveEnabled: (enabled) => set({ autoSaveEnabled: enabled }),
