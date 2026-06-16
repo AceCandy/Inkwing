@@ -1,18 +1,32 @@
 #typora-sidebar {
-  display: block;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
   overflow: hidden;
-  flex-shrink: 0;
-  position: relative;
   box-sizing: border-box;
+  width: var(--sidebar-width);
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: 14px;
+  text-align: left;
+  background: inherit;
+  background-color: var(--side-bar-bg-color);
+  border: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 0;
 }
 
-body:not(.typora-theme-scope) #typora-sidebar {
-  width: 100%;
-  height: 100%;
-  background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+body.typora-theme-scope.mac-seamless-mode #typora-sidebar {
+  padding-top: 20px;
 }
 
 /* Typora 侧栏 shell：保留真实 DOM，默认只展示 macOS segmented tab。 */
@@ -24,35 +38,24 @@ body:not(.typora-theme-scope) #typora-sidebar {
   flex: 1;
 }
 
-.sidebar-osx-tab {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 60;
-  height: 40px;
-  background: inherit;
-}
-
 .sidebar-tabs {
   position: relative;
-  display: flex;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  line-height: 40px;
+  width: calc(100% - 32px);
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
+  border-bottom: 1px solid #eee;
+  border-bottom: var(--window-border);
   text-align: center;
   white-space: nowrap;
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+  line-height: 40px;
   user-select: none;
-}
-
-body:not(.typora-theme-scope) .sidebar-tabs {
-  border-bottom: 1px solid var(--window-border, var(--border));
-  color: var(--text-secondary);
 }
 
 .sidebar-tab {
@@ -67,12 +70,6 @@ body:not(.typora-theme-scope) .sidebar-tabs {
   text-align: center;
 }
 
-body:not(.typora-theme-scope) .sidebar-tab {
-  color: inherit;
-  opacity: 0.4;
-  text-transform: uppercase;
-}
-
 .sidebar-tab.active,
 .sidebar-tab-current {
   display: inline-block;
@@ -81,15 +78,10 @@ body:not(.typora-theme-scope) .sidebar-tab {
   white-space: nowrap;
 }
 
-body:not(.typora-theme-scope) .sidebar-tab.active,
-body:not(.typora-theme-scope) .sidebar-tab-current {
-  color: var(--text-primary);
-  opacity: 1;
-}
-
 .sidebar-tab-btn {
   position: relative;
   z-index: 70;
+  display: -webkit-flex;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,176 +95,55 @@ body:not(.typora-theme-scope) .sidebar-tab-current {
   background: transparent;
   cursor: pointer;
   line-height: 40px;
+  opacity: 0;
   pointer-events: auto;
 }
 
-body:not(.typora-theme-scope) .sidebar-tab-btn {
-  color: var(--text-secondary);
-  transition: color 0.14s ease, opacity 0.14s ease;
-}
-
-body:not(.typora-theme-scope) .sidebar-tab-btn:hover,
-body:not(.typora-theme-scope) .sidebar-tab-btn:focus-visible {
-  color: var(--text-primary);
-}
-
-body:not(.typora-theme-scope) .sidebar-tab-btn:focus-visible {
-  outline: 1px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.sidebar-hover-action {
-  opacity: 0;
-}
-
 /* Typora 侧栏只有被指向或键盘聚焦时才露出文件/查找操作。 */
-#typora-sidebar:hover .sidebar-hover-action,
-#typora-sidebar:focus-within .sidebar-hover-action,
-.sidebar-osx-tab:hover .sidebar-hover-action,
-.sidebar-osx-tab.searching .sidebar-hover-action {
+#typora-sidebar:hover .sidebar-tab-btn,
+#typora-sidebar:focus-within .sidebar-tab-btn,
+.sidebar-osx-tab:hover .sidebar-tab-btn {
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
   opacity: 1;
 }
 
-body:not(.typora-theme-scope) #sidebar-search-btn {
+#sidebar-search-btn {
   font-size: 18px;
   margin-top: -2px;
 }
 
-.sidebar-switch-glyph,
-.sidebar-search-glyph {
-  position: relative;
-  display: block;
-  width: 20px;
-  height: 20px;
-  color: currentColor;
-  pointer-events: none;
-}
-
-.sidebar-switch-glyph {
-  fill: currentColor;
-  padding: 2px;
-  box-sizing: border-box;
-}
-
-.sidebar-search-glyph {
-  fill: none;
-  stroke: currentColor;
-}
-
-.typora-search-ring,
-.typora-search-handle {
-  stroke: currentColor;
-  stroke-width: 2.15;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.ty-sidebar-search-panel {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  height: 100%;
-  padding: 0 8px;
-  box-sizing: border-box;
-}
-
-.sidebar-osx-tab.searching .sidebar-tabs {
-  display: none;
-}
-
-.sidebar-osx-tab.searching .ty-sidebar-search-panel {
-  display: flex;
-}
-
-#file-library-search-input {
-  flex: 1;
-  min-width: 0;
-  height: 28px;
-  padding: 0 10px;
-  box-sizing: border-box;
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 7px;
-  outline: none;
-  background: var(--input-bg-color, var(--bg-color, var(--bg-surface)));
-  color: var(--sidebar-font-color, var(--text-secondary));
-  font-size: 13px;
-}
-
-#file-library-search-input:focus {
-  border-color: var(--primary-color, var(--accent));
-  color: var(--font-color, var(--text-primary));
-}
-
-#file-library-search-input::placeholder {
-  color: var(--sidebar-font-color, var(--text-secondary));
-  opacity: 0.7;
-}
-
-#ty-sidebar-search-back-btn {
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
-}
-
-#ty-sidebar-search-back-btn .ty-left-arrow {
-  position: relative;
-  display: block;
-  width: 14px;
-  height: 14px;
-}
-
-#ty-sidebar-search-back-btn .ty-left-arrow::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 8px;
-  height: 8px;
-  border-left: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
-}
-
-.searchpanel-search-option-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  color: var(--sidebar-font-color, var(--text-secondary));
-  opacity: 0.75;
-}
-
-.searchpanel-search-option-btn .icon {
-  width: 13px;
-  height: 13px;
+#sidebar-search-btn .ion-ios7-search-strong::before {
+  min-width: 20px;
 }
 
 .sidebar-content {
-  position: absolute;
-  top: 40px;
-  right: 0;
-  bottom: 28px;
-  left: 0;
-  overflow: auto;
-  padding: 0;
-  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-flex: 1;
+  flex: 1;
+  background: inherit;
+  display: -webkit-flex;
+  display: flex;
+  position: relative;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  width: 100%;
 }
 
-#typora-sidebar #file-library-search,
+.sidebar-content-content {
+  min-width: 100%;
+  font-size: 14px;
+}
+
+#outline-content {
+  display: block;
+  overflow-x: hidden;
+}
+
 #typora-sidebar.active-tab-outline #file-library,
 #typora-sidebar.active-tab-files #outline-content {
   display: none;
-}
-
-#typora-sidebar.active-tab-outline.ty-on-search #file-library-search-result {
-  display: none;
-}
-
-#typora-sidebar.active-tab-outline.ty-on-search #outline-content {
-  height: 100% !important;
-  max-height: 100% !important;
 }
 
 #typora-sidebar.active-tab-outline #outline-content,
@@ -281,14 +152,29 @@ body:not(.typora-theme-scope) #sidebar-search-btn {
 }
 
 .active-tab-files #file-library {
-  height: 100%;
-  box-sizing: border-box;
-  overflow: auto;
+  display: block;
 }
 
-body:not(.typora-theme-scope) .active-tab-files #file-library {
-  padding: 14px 14px 22px 17px;
-  color: var(--sidebar-font-color, var(--text-secondary));
+.active-tab-files.use-file-tree-style .sidebar-content {
+  bottom: 30px;
+}
+
+.active-tab-files.use-file-tree-style.ty-on-search .sidebar-content {
+  bottom: 0;
+}
+
+#file-library {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 8px;
+}
+
+#sidebar-content:hover #file-library {
+  overflow-x: auto;
+  padding-bottom: 0;
 }
 
 #file-library-tree:empty::after {
@@ -296,178 +182,14 @@ body:not(.typora-theme-scope) .active-tab-files #file-library {
   display: block;
 }
 
-body:not(.typora-theme-scope) #file-library-tree:empty::after {
-  padding: 12px 7px;
-  color: var(--text-secondary);
-  opacity: 0.75;
-}
-
 .file-library-node,
 .file-tree-node {
-  position: relative;
   font-size: inherit;
 }
 
-body:not(.typora-theme-scope) .file-library-node,
-body:not(.typora-theme-scope) .file-tree-node {
-  color: var(--sidebar-font-color, var(--text-secondary));
-}
-
-.file-tree-node[role="button"] {
-  cursor: pointer;
-}
-
-.file-node-background {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 24px;
-  border-radius: 4px;
-  pointer-events: none;
-}
-
-.file-node-content,
-.file-tree-item {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  min-height: 24px;
-  box-sizing: border-box;
-  color: inherit;
-  overflow: hidden;
-}
-
-body:not(.typora-theme-scope) .file-node-content,
-body:not(.typora-theme-scope) .file-tree-item {
-  border-radius: 4px;
-  padding: 5px 7px 5px 0;
-  line-height: 1.2;
-}
-
-body:not(.typora-theme-scope) .file-tree-node[role="button"] > .file-node-content:hover,
-body:not(.typora-theme-scope) .file-tree-node[role="button"] > .file-tree-item:hover,
-body:not(.typora-theme-scope) .file-tree-node.active > .file-node-content,
-body:not(.typora-theme-scope) .file-tree-node.active > .file-tree-item {
-  background: var(--hover-color, var(--bg-surface));
-  color: var(--font-color, var(--text-primary));
-}
-
-body:not(.typora-theme-scope) .file-tree-children {
-  padding-left: 15px;
-}
-
-.file-node-open-state,
-.file-tree-expander {
-  position: relative;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
-}
-
-body:not(.typora-theme-scope) .file-node-open-state .fa {
-  display: none;
-}
-
-body:not(.typora-theme-scope) .file-tree-open > .file-tree-item > .file-tree-expander::before,
-body:not(.typora-theme-scope) .file-tree-close > .file-tree-item > .file-tree-expander::before {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 5px;
-  height: 5px;
-  border-right: 1.2px solid currentColor;
-  border-bottom: 1.2px solid currentColor;
-  opacity: 0.7;
-  transform-origin: center;
-  transition: transform 0.15s ease;
-}
-
-body:not(.typora-theme-scope) .file-tree-close > .file-tree-item > .file-tree-expander::before {
-  transform: rotate(-45deg);
-}
-
-body:not(.typora-theme-scope) .file-tree-open > .file-tree-item > .file-tree-expander::before {
-  transform: rotate(45deg);
-}
-
-.file-node-icon {
-  position: relative;
-  flex: 0 0 18px;
-  width: 18px;
-  height: 18px;
-  margin-right: 4px;
-  color: inherit;
-}
-
-body:not(.typora-theme-scope) #file-library-tree .file-node-icon .fa-folder::before {
-  content: "";
-  position: absolute;
-  top: 6px;
-  left: 2px;
-  width: 13px;
-  height: 9px;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0.7;
-}
-
-body:not(.typora-theme-scope) #file-library-tree .file-node-icon .fa-folder::after {
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: 3px;
-  width: 6px;
-  height: 4px;
-  border-radius: 2px 2px 0 0;
-  background: currentColor;
-  opacity: 0.7;
-}
-
-body:not(.typora-theme-scope) #file-library-tree .file-library-file-node > .file-node-content .file-node-icon::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 4px;
-  width: 10px;
-  height: 13px;
-  border: 1.3px solid currentColor;
-  border-radius: 1px;
-  box-sizing: border-box;
-  opacity: 0.72;
-}
-
-body:not(.typora-theme-scope) #file-library-tree .file-library-file-node > .file-node-content .file-node-icon::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 11px;
-  width: 3px;
-  height: 3px;
-  border-left: 1.2px solid currentColor;
-  border-bottom: 1.2px solid currentColor;
-  opacity: 0.72;
-}
-
-.file-node-title,
-.file-tree-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-body:not(.typora-theme-scope) .file-tree-message {
-  padding: 12px 7px;
-  color: var(--sidebar-font-color, var(--text-secondary));
-  opacity: 0.75;
-}
-
-body:not(.typora-theme-scope) .file-tree-message.error {
-  color: var(--error);
-}
+/* File-node layout (background/content/open-state/icon/title) is provided by
+   Typora base-control rules in typora/shell.css.txt. Do not re-declare them
+   here — the previous flex overrides diverged from Typora's float/table layout. */
 
 .outline-content,
 .outline-children {
@@ -477,27 +199,14 @@ body:not(.typora-theme-scope) .file-tree-message.error {
 }
 
 .outline-content {
+  -webkit-flex: auto;
+  flex: auto;
   height: 100%;
   max-height: 100%;
+  max-width: 100%;
   box-sizing: border-box;
-  overflow: auto;
-}
-
-body:not(.typora-theme-scope) .outline-content {
-  padding: 14px 14px 22px 17px;
-  color: var(--sidebar-font-color, var(--text-secondary));
-  font-size: 14px;
-}
-
-.outline-content:empty::after {
-  content: attr(data-after-content);
-  display: block;
-}
-
-body:not(.typora-theme-scope) .outline-content:empty::after {
-  padding: 12px 7px;
-  color: var(--text-secondary);
-  opacity: 0.75;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .outline-children {
@@ -505,8 +214,44 @@ body:not(.typora-theme-scope) .outline-content:empty::after {
   z-index: 48;
 }
 
-body:not(.typora-theme-scope) .outline-children {
-  margin-left: 18px;
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+}
+
+body.typora-theme-scope #outline-content:empty::after {
+  content: attr(data-after-content);
+  text-align: center;
+  top: calc(50vh - 60px);
+  display: block;
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  padding-bottom: 8px;
+  padding-top: 8px;
+}
+
+body.typora-theme-scope #typora-sidebar:hover #outline-content:empty::after {
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
+  opacity: 1;
+}
+
+body.typora-theme-scope #outline-content:empty {
+  padding: 0;
+  position: relative;
+}
+
+body.typora-theme-scope #outline-content:empty::after,
+body.typora-theme-scope .outline-content:empty::after {
+  display: block;
 }
 
 .outline-item-wrapper {
@@ -522,166 +267,95 @@ body:not(.typora-theme-scope) .outline-children {
   cursor: pointer;
 }
 
-body:not(.typora-theme-scope) .outline-item {
-  margin: 0 0 3px 7px;
-  width: calc(100% - 4px);
-  border: none;
-  border-radius: 5px;
-  line-height: 1;
-  padding: 0 0 0 4px;
-  background: transparent;
+body.typora-theme-scope .outline-label {
+  cursor: pointer;
+  display: table-cell;
+  vertical-align: middle;
+  text-decoration: none;
+  color: inherit;
 }
 
-body:not(.typora-theme-scope) .outline-item:hover,
-body:not(.typora-theme-scope) .outline-item:hover > .outline-label,
-body:not(.typora-theme-scope) .outline-item-active,
-body:not(.typora-theme-scope) .outline-item-active > .outline-label {
-  background-color: var(--bg-surface);
+body.typora-theme-scope .outline-expander {
+  position: relative;
+  display: table-cell;
+  width: 1rem;
+  height: 1.428571429rem;
+  padding-left: 4px;
+  cursor: pointer;
+  vertical-align: middle;
 }
 
-body:not(.typora-theme-scope) .outline-expander {
-  display: block;
-  float: left;
-  width: auto;
-  height: 0;
-  min-width: 0;
-  padding-left: 0;
-  color: var(--sidebar-font-color, var(--text-secondary));
-  background: transparent;
-}
-
-/* 默认不显示展开箭头（例如单项/叶子节点） */
-body:not(.typora-theme-scope) .outline-expander::before {
-  content: none !important;
-}
-
-/* 将有子节点的项的折叠/展开小箭头设为绝对定位，确保在任何第三方主题下不与垂直连线重叠 */
-body:not(.typora-theme-scope) .outline-item-open > .outline-item > .outline-expander,
-body:not(.typora-theme-scope) .outline-item-close > .outline-item > .outline-expander {
-  position: absolute !important;
-  left: 12px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 14px !important;
-  height: 14px !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  z-index: 55;
-  float: none !important; /* 摆脱 float 干扰 */
-}
-
-/* 只有当它是有子节点的项（打开或关闭）时，才显示 CSS 绘制 of 细线箭头 */
-body:not(.typora-theme-scope) .outline-item-open > .outline-item > .outline-expander::before,
-body:not(.typora-theme-scope) .outline-item-close > .outline-item > .outline-expander::before {
-  content: "" !important;
+body.typora-theme-scope .outline-expander::before {
+  content: "\f125";
+  position: relative;
   display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-right: 1.2px solid currentColor;
-  border-bottom: 1.2px solid currentColor;
-  transform-origin: center;
-  transition: transform 0.15s ease;
-  opacity: 0.7;
-  /* 防御性 CSS 重置：阻断任何三方主题（如 claude.css）加在 :before 上的 margin/padding 偏移，强制居中不飘移 */
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* 折叠状态下，旋转指向右侧 (Chevron Right) */
-body:not(.typora-theme-scope) .outline-item-close > .outline-item > .outline-expander::before {
-  transform: rotate(-45deg);
-}
-
-/* 展开状态下，旋转指向下方 (Chevron Down) */
-body:not(.typora-theme-scope) .outline-item-open > .outline-item > .outline-expander::before {
-  transform: rotate(45deg);
-}
-
-/* Typora 主题只负责调整 expander 的位置和字号，基础箭头内容来自原生壳层。 */
-body.typora-theme-scope .outline-item-close > .outline-item > .outline-expander::before,
-body.typora-theme-scope .outline-item-open > .outline-item > .outline-expander::before {
-  display: inline-block;
-  font-family: FontAwesome;
+  font-family: Ionicons;
   font-style: normal;
   font-weight: normal;
-  line-height: 1;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
+  font-size: 8px;
+  vertical-align: middle;
 }
 
-body.typora-theme-scope .outline-item-close > .outline-item > .outline-expander::before {
-  content: "\f0da";
-}
-
+body.typora-theme-scope .outline-expander:hover::before,
 body.typora-theme-scope .outline-item-open > .outline-item > .outline-expander::before {
-  content: "\f0d7";
+  content: "\f123";
 }
 
-/* 补齐 Typora 原生大纲基础字号层级样式 */
-body:not(.typora-theme-scope) .outline-h1 {
-  font-size: 1.14em;
-}
-body:not(.typora-theme-scope) .outline-h2 {
-  font-size: 1.05em;
-}
-body:not(.typora-theme-scope) .outline-h3 {
-  font-size: 0.95em;
-}
-body:not(.typora-theme-scope) .outline-h4,
-body:not(.typora-theme-scope) .outline-h5,
-body:not(.typora-theme-scope) .outline-h6 {
-  font-size: 0.9em;
+body.typora-theme-scope .outline-item-single .outline-expander::before,
+body.typora-theme-scope .outline-item-single .outline-expander:hover::before {
+  display: none;
 }
 
-body:not(.typora-theme-scope) .outline-label {
-  display: inline-block;
-  max-width: calc(100% - 12px);
-  border-radius: 4px;
-  padding: 7px 7px 7px 8px;
-  color: var(--sidebar-font-color, var(--text-secondary));
-  font-size: inherit !important; /* 继承外层 outline-hX 的层级字号 */
-  font-weight: var(--sidebar-font-weight, 430);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  overflow-wrap: normal;
-  word-wrap: normal;
-  word-break: keep-all;
-  white-space: nowrap;
-  text-decoration: none;
-  opacity: 1;
+body.typora-theme-scope .outline-children {
+  display: none;
 }
 
-/* 为有子项的大纲标签设置合理的 padding-left，腾出空间以防止文字与绝对定位小箭头重合 */
-body:not(.typora-theme-scope) .outline-item-open > .outline-item > .outline-label,
-body:not(.typora-theme-scope) .outline-item-close > .outline-item > .outline-label {
-  padding-left: 26px;
+body.typora-theme-scope .outline-item-open > .outline-children,
+body.typora-theme-scope.pin-outline.no-collapse-outline .outline-children {
+  display: block;
 }
 
-body:not(.typora-theme-scope) .outline-item-single .outline-label,
-body:not(.typora-theme-scope) .outline-item-single.outline-item-open .outline-label {
-  padding-left: 0;
+body.typora-theme-scope.pin-outline.no-collapse-outline .outline-expander {
+  display: none;
 }
 
 .sidebar-footer {
   position: absolute;
-  right: 0;
-  bottom: 0;
   left: 0;
-  z-index: 60;
-  min-height: 24px;
+  bottom: 0;
+  z-index: 2;
+  display: none;
+  width: 100%;
+  height: 30px;
+  border-top: var(--window-border);
   background: inherit;
-}
-
-body:not(.typora-theme-scope) .sidebar-footer {
-  color: var(--text-secondary);
   font-size: 12px;
+  opacity: 0;
+  line-height: 24px;
+  -webkit-flex: 0 0;
+  flex: 0 0;
 }
 
-.sidebar-footer-shell {
+.active-tab-files.use-file-tree-style:not(.ty-no-mount-folder) .sidebar-footer {
   display: flex;
-  background: inherit;
+  opacity: 1;
+  animation: none !important;
+}
+
+.use-file-tree-style .sidebar-footer-item {
+  opacity: 0;
+}
+
+.use-file-tree-style #sidebar-new-file-btn {
+  opacity: 1;
+}
+
+#typora-sidebar.use-file-tree-style:hover .sidebar-footer-item:not(#sidebar-new-file-btn) {
+  opacity: 1;
+}
+
+body.typora-theme-scope.html-for-mac .use-file-tree-style .sidebar-footer {
+  position: initial;
 }
 
 .sidebar-footer-item,
@@ -695,11 +369,6 @@ body:not(.typora-theme-scope) .sidebar-footer {
 
 .sidebar-footer-main-item {
   flex: 1;
-}
-
-.sidebar-footer-add-icon {
-  position: relative;
-  top: 1px;
 }
 
 .dropdown-menu {
@@ -718,6 +387,6 @@ body.typora-theme-scope.mac-os .sidebar-header-drag {
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--title-bar-height, 78px) + 15px);
+  height: calc(var(--title-bar-height) + 15px);
   z-index: 0; /* 放在红绿灯底层，防止阻碍交互 */
 }

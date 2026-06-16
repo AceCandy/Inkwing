@@ -12,14 +12,14 @@ describe('Tauri config', () => {
     expect(tauriConfig.build.beforeDevCommand).toBe('npm run dev -- --host 127.0.0.1 --port 1420')
   })
 
-  it('lets Rust setup explicitly create and focus the main window', () => {
+  it('lets Tauri create the main window before Rust setup focuses it', () => {
     const mainWindow = tauriConfig.app.windows.find(
       (windowConfig: { label?: string }) => windowConfig.label === 'main',
     )
 
     expect(mainWindow).toEqual(
       expect.objectContaining({
-        create: false,
+        create: true,
         visible: true,
       }),
     )

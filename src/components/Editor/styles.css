@@ -1,267 +1,66 @@
 .milkdown-editor {
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  padding: var(--spacing-lg, 24px);
-  background-color: var(--theme-editor-bg, #1e1e2e);
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-.editor-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
-  font-size: 1.125rem;
-}
-
-.milkdown .editor {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: var(--spacing-xl, 32px) 0;
-  font-family: var(--theme-font-family, 'Inter', sans-serif);
-  font-size: var(--theme-font-size, 16px);
-  line-height: var(--theme-line-height, 1.75);
-}
-
-.milkdown .editor:focus,
-.milkdown .editor:focus-visible {
-  outline: none !important;
-}
-
-/* 标题样式 */
-.milkdown .editor h1 {
-  font-size: var(--theme-h1-size, 2em);
-  font-weight: 700;
-  margin: var(--theme-heading-margin, 1.5em 0 0.5em);
-  color: var(--theme-text-primary, #cdd6f4);
-  border-bottom: 2px solid var(--theme-border, #45475a);
-  padding-bottom: 0.3em;
-}
-
-.milkdown .editor h2 {
-  font-size: var(--theme-h2-size, 1.5em);
-  font-weight: 600;
-  margin: var(--theme-heading-margin, 1.5em 0 0.5em);
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-.milkdown .editor h3 {
-  font-size: var(--theme-h3-size, 1.25em);
-  font-weight: 600;
-  margin: var(--theme-heading-margin, 1.5em 0 0.5em);
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-/* 段落样式 */
-.milkdown .editor p {
-  margin: var(--theme-paragraph-margin, 1em 0);
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-/* 链接样式 */
-.milkdown .editor a {
-  color: var(--theme-link, #89b4fa);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.2s ease;
-}
-
-.milkdown .editor a:hover {
-  color: var(--theme-link-hover, #74c7ec);
-  border-bottom-color: var(--theme-link-hover, #74c7ec);
-}
-
-/* 粗体和斜体 */
-.milkdown .editor strong {
-  font-weight: 600;
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-.milkdown .editor em {
-  font-style: italic;
-  color: var(--theme-text-secondary, #a6adc8);
-}
-
-/* 引用块 */
-.milkdown .editor blockquote {
-  margin: 1em 0;
-  padding: var(--theme-block-padding, 1em);
-  background-color: var(--theme-blockquote-bg, #313244);
-  border-left: 4px solid var(--theme-blockquote-border, #89b4fa);
-  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
-}
-
-.milkdown .editor blockquote p {
-  margin: 0.5em 0;
-  color: var(--theme-text-secondary, #a6adc8);
-}
-
-/* 代码样式 */
-.milkdown .editor code {
-  font-family: var(--theme-font-family-mono, 'JetBrains Mono', monospace);
-  font-size: 0.9em;
-  background-color: var(--theme-inline-code-bg, var(--theme-code-bg, #181825));
-  color: var(--theme-inline-code-text, var(--theme-code-text, #cdd6f4));
-  border: 1px solid var(--theme-inline-code-border, transparent);
-  padding: 0.2em 0.4em;
-  border-radius: var(--radius-sm, 4px);
-}
-
-.milkdown .editor pre {
-  margin: 1em 0;
-  padding: var(--theme-block-padding, 1em);
-  background-color: var(--theme-code-bg, #181825);
-  border: 1px solid var(--theme-code-border, transparent);
-  border-radius: var(--radius-md, 8px);
-  overflow-x: auto;
-}
-
-.milkdown .editor pre code {
-  background: none;
-  border: none;
-  color: var(--theme-code-text, #cdd6f4);
+  min-height: 100%;
+  overflow: visible;
   padding: 0;
-  font-size: 0.9em;
-  line-height: 1.6;
+  background-color: inherit;
+  color: inherit;
 }
 
-/* 列表样式 */
-.milkdown .editor ul,
-.milkdown .editor ol {
-  margin: 1em 0;
-  padding-left: 2em;
-}
-
-.milkdown .editor li {
-  margin: 0.5em 0;
-}
-
-.milkdown .editor ul li::marker {
-  color: var(--theme-accent, #89b4fa);
-}
-
-.milkdown .editor ol li::marker {
-  color: var(--theme-accent, #89b4fa);
-  font-weight: 600;
-}
-
-/* 表格样式 */
-.milkdown .editor table {
+body.typora-theme-scope .typora-write-host,
+body.typora-theme-scope .typora-write-host > div,
+body.typora-theme-scope .typora-write-host .milkdown {
   width: 100%;
-  margin: 1em 0;
-  border-collapse: collapse;
-  border-radius: var(--radius-md, 8px);
-  overflow: hidden;
+  min-height: 100%;
+  height: 100%;
+  background-color: inherit;
 }
 
-.milkdown .editor th {
-  background-color: var(--theme-table-header-bg, #313244);
-  font-weight: 600;
-  text-align: left;
-  padding: 0.75em 1em;
-  border: 1px solid var(--theme-table-border, #45475a);
-}
-
-.milkdown .editor td {
-  padding: 0.75em 1em;
-  border: 1px solid var(--theme-table-border, #45475a);
-}
-
-.milkdown .editor tr:hover {
-  background-color: var(--theme-table-row-hover, #2a2a3c);
-}
-
-/* 分割线 */
-.milkdown .editor hr {
-  margin: 2em 0;
-  border: none;
-  border-top: 2px solid var(--theme-border, #45475a);
-}
-
-/* 图片 */
-.milkdown .editor img {
-  max-width: 100%;
-  height: auto;
-  border-radius: var(--radius-md, 8px);
-  margin: 1em 0;
-}
-
-/* 任务列表 */
-.milkdown .editor .task-list-item {
-  list-style: none;
+body.typora-theme-scope #write {
   position: relative;
-  padding-left: 1.5em;
+  min-height: 100%;
+  top: 0;
+  margin: 0 auto;
+  height: auto;
+  width: inherit;
+  word-break: normal;
+  word-wrap: break-word;
+  white-space: normal;
+  background-color: inherit;
+  overflow-x: visible;
+  -webkit-user-drag: none;
+  padding-bottom: 70px;
+  transition: .4s padding-top ease-out;
 }
 
-.milkdown .editor .task-list-item input[type="checkbox"] {
-  position: absolute;
-  left: 0;
-  top: 0.3em;
-  width: 1.2em;
-  height: 1.2em;
-  accent-color: var(--theme-accent, #89b4fa);
+body.typora-theme-scope.typora-node #write {
+  min-height: 100%;
+  top: 0;
 }
 
-/* 数学公式 */
-.milkdown .editor .math-inline {
-  display: inline;
-  background-color: var(--theme-code-bg, #181825);
-  padding: 0.15em 0.35em;
-  border-radius: var(--radius-sm, 4px);
-  cursor: default;
-  transition: background-color 0.2s ease;
-}
-
-.milkdown .editor .math-inline:hover {
-  background-color: var(--theme-table-row-hover, #2a2a3c);
-}
-
-.milkdown .editor .math-block {
+body.typora-theme-scope #write::after {
+  content: "";
+  font-size: 0;
   display: block;
-  margin: 1em 0;
-  padding: var(--theme-block-padding, 1em);
-  background-color: var(--theme-code-bg, #181825);
-  border-radius: var(--radius-md, 8px);
-  overflow-x: auto;
-  text-align: center;
-  cursor: default;
-  transition: background-color 0.2s ease;
+  height: 0;
 }
 
-.milkdown .editor .math-block:hover {
-  background-color: var(--theme-table-row-hover, #2a2a3c);
+body.typora-theme-scope #write h1,
+body.typora-theme-scope #write h2,
+body.typora-theme-scope #write h3,
+body.typora-theme-scope #write h4,
+body.typora-theme-scope #write h5,
+body.typora-theme-scope #write h6,
+body.typora-theme-scope #write p,
+body.typora-theme-scope #write pre {
+  width: inherit;
+  position: relative;
 }
 
-/* 数学公式选中状态 */
-.milkdown .editor .math-inline.ProseMirror-selectednode,
-.milkdown .editor .math-block.ProseMirror-selectednode {
-  outline: 2px solid var(--theme-accent, #89b4fa);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm, 4px);
-}
-
-/* 编辑器内 KaTeX 颜色适配深色主题 */
-.milkdown .editor .katex {
-  color: var(--theme-text-primary, #cdd6f4);
-}
-
-.milkdown .editor .katex .mop {
-  color: var(--theme-accent, #89b4fa);
-}
-
-.milkdown .editor .typora-emoji-shortcode-source {
-  display: none;
-}
-
-.milkdown .editor .typora-emoji-shortcode {
-  display: inline;
-  font-family: var(--font-sans);
-}
-
-/* 选中文本高亮 */
-.milkdown .editor ::selection {
-  background-color: var(--theme-accent, #89b4fa);
-  color: var(--theme-editor-bg, #1e1e2e);
+body.typora-theme-scope #write h1,
+body.typora-theme-scope #write h2,
+body.typora-theme-scope #write h3,
+body.typora-theme-scope #write h4,
+body.typora-theme-scope #write h5 {
+  white-space: pre-wrap;
 }

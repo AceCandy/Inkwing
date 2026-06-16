@@ -1,0 +1,349 @@
+/* Typora TypeMark shell rules used by the replicated sidebar/search skeleton. */
+
+.no-animation #typora-sidebar,
+.no-animation content,
+.no-animation titlebar {
+  transition: none;
+}
+
+#file-library-search {
+  height: 0;
+  transition: height .25s;
+  overflow: hidden;
+  width: 100%;
+}
+
+#typora-sidebar.ty-on-search #file-library {
+  display: none !important;
+}
+
+#typora-sidebar.ty-on-search #file-library-search {
+  height: 100%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+
+#file-library-search-result {
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-break: break-word;
+  position: relative;
+  display: none;
+}
+
+.ty-on-search #file-library-search-result {
+  padding-bottom: 32px;
+  display: block;
+}
+
+.ty-sidebar-search-panel .btn:not(.close-btn):hover {
+  outline: 0;
+  background-image: none;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+}
+
+.ty-sidebar-search-panel svg.icon {
+  width: 20px;
+  height: 14px;
+  stroke: none;
+  fill: currentColor;
+}
+
+.ty-sidebar-search-panel .searchpanel-search-option-btn {
+  top: 4px;
+  opacity: .5;
+  border: none;
+  display: none;
+}
+
+#ty-sidebar-search-tabs .searchpanel-search-option-btn {
+  top: 10px;
+}
+
+.ty-sidebar-search-panel .searchpanel-search-option-btn.select,
+.ty-sidebar-search-panel .searchpanel-search-option-btn:hover {
+  background: var(--active-file-bg-color);
+  color: var(--active-file-text-color);
+  opacity: 1;
+}
+
+#filesearch-word-option-btn {
+  right: 42px;
+}
+
+#filesearch-case-option-btn {
+  right: 64px;
+}
+
+#filesearch-regexp-option-btn {
+  right: 20px;
+}
+
+#typora-sidebar.ty-on-search .searchpanel-search-option-btn,
+#typora-sidebar.ty-show-search:hover .searchpanel-search-option-btn {
+  display: inline-block;
+}
+
+#typora-sidebar.ty-show-outline-filter .searchpanel-search-option-btn {
+  display: none !important;
+}
+
+#sidebar-search-btn {
+  font-size: 18px;
+  margin-top: -2px;
+}
+
+#sidebar-search-btn .ion-ios7-search-strong:before {
+  min-width: 20px;
+}
+
+#ty-sidebar-search-tabs,
+.ty-show-outline-filter .sidebar-tabs,
+.ty-show-search .sidebar-tabs {
+  display: none;
+}
+
+.ty-show-outline-filter #ty-sidebar-search-tabs,
+.ty-show-search #ty-sidebar-search-tabs {
+  display: -webkit-flex;
+  display: flex;
+  position: relative;
+}
+
+@keyframes expandFromRight {
+  0% {
+    transform: scaleX(.1);
+    transform-origin: right;
+  }
+
+  60% {
+    transform: none;
+  }
+}
+
+#typora-sidebar:hover #ty-sidebar-search-back-btn {
+  animation: none;
+}
+
+#file-library-search-input:focus {
+  border-color: var(--primary-color);
+}
+
+#file-library-search-input {
+  padding-right: 64px;
+}
+
+#ty-sidebar-search-back-btn {
+  text-align: center;
+  font-size: 16px;
+  opacity: 1;
+  animation: none;
+}
+
+.ty-on-outline-filter .outline-expander {
+  display: none;
+}
+
+.ty-on-outline-filter .outline-children {
+  display: block;
+}
+
+.ty-on-outline-filter .ty-outline-miss {
+  display: none;
+}
+
+.ty-on-outline-filter .outline-active {
+  font-weight: 400;
+}
+
+.ty-on-outline-filter .ty-outline-hit {
+  font-weight: 700;
+}
+
+#file-library-search-input {
+  width: 100%;
+  height: 24px;
+}
+
+.ty-show-search #file-library-search {
+  height: 50px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  transition: height .3s;
+}
+
+.no-animation .ty-show-search #file-library-search {
+  transition: none;
+}
+
+#close-outline-filter-btn {
+  padding: 0;
+  opacity: .6;
+  position: absolute;
+  right: 12px;
+}
+
+#file-library-search-input {
+  border: 0;
+  border-bottom: 1px solid #ccc;
+  line-height: 16px;
+  margin: 8px 16px 10px 0;
+  width: 0;
+  -webkit-flex: 1;
+  flex: 1;
+  background: transparent;
+}
+
+.ty-show-search #file-library-search-input {
+  animation-name: expandFromRight;
+  animation-duration: .3s;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  padding-right: 72px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Typora base-control.css file-tree + outline layout rules.          */
+/* These are the verbatim selectors/values Typora's own base-control  */
+/* applies, so the project renders file nodes / outline identically   */
+/* to Typora instead of the previous component-level flex overrides.  */
+/* ------------------------------------------------------------------ */
+
+#file-library-tree {
+  padding-right: 4px;
+  padding-left: 8px;
+  height: 100%;
+  overflow-x: visible;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  display: table;
+  min-width: 100%;
+}
+
+#file-library-list,
+#file-library-tree {
+  display: none;
+}
+
+.use-file-tree-style #file-library-tree {
+  display: table;
+}
+
+.file-node-content {
+  padding-top: 4px;
+  cursor: default;
+  color: #777;
+  color: var(--control-text-color);
+  white-space: nowrap;
+  padding-right: 32px;
+  line-height: 22px;
+}
+
+.file-node-content:hover {
+  color: #555;
+  color: var(--control-text-hover-color);
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state {
+  visibility: visible;
+}
+
+.file-node-title {
+  display: block;
+  white-space: normal;
+  overflow: hidden;
+}
+
+.allow-file-tree-scroll .file-node-title {
+  display: inline-block;
+  white-space: nowrap;
+  overflow-x: visible;
+  overflow-y: hidden;
+}
+
+.file-tree-node {
+  padding-left: 8px;
+  transition-duration: unset !important;
+}
+
+.file-node-icon {
+  margin-right: 4px;
+}
+
+.file-node-open-state {
+  display: inline-block;
+  min-width: 8px;
+}
+
+.file-node-icon,
+.file-node-open-state {
+  display: block;
+  float: left;
+  line-height: 22px;
+  min-height: 22px;
+}
+
+.file-node-open-state * {
+  display: none;
+}
+
+.file-node-expanded > .file-node-content .fa-caret-down {
+  display: inline;
+  margin-left: -4px;
+}
+
+.file-node-collapsed > .file-node-content .fa-caret-right {
+  display: inline;
+}
+
+.file-node-collapsed > .file-node-children {
+  display: none;
+}
+
+.file-node-expanded > .file-node-children {
+  display: block;
+}
+
+.file-node-background {
+  width: 100%;
+  height: 29px;
+  float: left;
+  position: absolute;
+  left: 0;
+  z-index: -1;
+}
+
+.file-library-node:not(.file-node-root):focus > .file-node-content {
+  outline-color: #000;
+  outline: currentColor dashed 1px;
+}
+
+.file-tree-node.active > .file-node-background {
+  background-color: #eee;
+  background-color: var(--active-file-bg-color);
+  border-left: 4px solid #777;
+  border-color: var(--active-file-border-color);
+}
+
+.file-tree-node.active > .file-node-content {
+  color: var(--control-text-color);
+  color: var(--active-file-text-color);
+}
+
+.file-tree-rename-div {
+  display: none;
+}
+
+.file-node-on-edit > .file-node-content > .file-node-title {
+  display: none;
+}
+
+.file-node-on-edit > .file-node-content > .file-tree-rename-div {
+  display: block;
+}
+

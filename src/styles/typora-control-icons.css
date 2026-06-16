@@ -1,0 +1,77 @@
+@font-face {
+  font-family: 'typora-icon';
+  src: url('/typora-control/typora-icon/fonts/typora-icon.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Ionicons';
+  src: url('/typora-control/ionicons-2.0.1/fonts/ionicons.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.ty-icon {
+  font-family: 'typora-icon' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  line-height: 1;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ion-ios7-search-strong::before,
+.ion-close-round::before {
+  display: inline-block;
+  font-family: 'Ionicons';
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  line-height: 1;
+  speak: none;
+  text-rendering: auto;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ty-three-cells::before {
+  content: "\e900";
+}
+
+.ty-file-tree::before {
+  content: "\e904";
+}
+
+.ty-left-arrow::before {
+  content: "\e920";
+}
+
+.ty-dots-v::before {
+  content: "\e911";
+}
+
+.ty-add::before {
+  content: "\e90f";
+}
+
+.ty-delete-button::before {
+  content: "\e90e";
+}
+
+.ty-export1::before {
+  content: "\e90b";
+}
+
+.ion-ios7-search-strong::before {
+  content: "\f1d9";
+}
+
+.ion-close-round::before {
+  content: "\f129";
+}

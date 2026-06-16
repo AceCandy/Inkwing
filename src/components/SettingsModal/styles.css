@@ -13,9 +13,9 @@
   width: 90%;
   max-width: 520px;
   max-height: 80vh;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .settings-title-container {
@@ -46,7 +46,7 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .settings-close-btn {
@@ -57,21 +57,21 @@
   height: 28px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
+  color: var(--control-text-color);
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .settings-close-btn:hover {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
+  background-color: var(--item-hover-bg-color);
+  color: var(--item-hover-text-color);
 }
 
 /* Tab 栏 */
 .settings-tabs {
   display: flex;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
   padding: 0 20px;
 }
 
@@ -79,7 +79,7 @@
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--control-text-color);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -89,12 +89,12 @@
 }
 
 .settings-tab:hover {
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .settings-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
 }
 
 .settings-body {
@@ -115,7 +115,7 @@
   margin: 0 0 12px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -128,24 +128,24 @@
 
 .option-btn {
   padding: 8px 16px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--text-color);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .option-btn:hover {
-  border-color: var(--text-secondary);
-  background-color: var(--bg-surface);
+  border-color: var(--control-text-color);
+  background-color: var(--item-hover-bg-color);
 }
 
 .option-btn.active {
-  border-color: var(--accent);
-  background-color: var(--bg-surface);
-  color: var(--accent);
+  border-color: var(--primary-color);
+  background-color: var(--item-hover-bg-color);
+  color: var(--primary-color);
 }
 
 /* 主题网格 */
@@ -159,26 +159,26 @@
 
 .theme-import-btn {
   padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--side-bar-bg-color);
+  color: var(--text-color);
   font-size: 0.875rem;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .theme-import-btn:hover:not(:disabled) {
-  background-color: var(--bg-surface);
-  border-color: var(--text-secondary);
+  background-color: var(--item-hover-bg-color);
+  border-color: var(--control-text-color);
 }
 
 .theme-import-message {
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--control-text-color);
 }
 
 .theme-import-message.error {
-  color: var(--error);
+  color: #a94442;
 }
 
 .theme-grid {
@@ -193,36 +193,36 @@
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
   background: transparent;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .theme-card:hover {
-  border-color: var(--text-secondary);
-  background-color: var(--bg-surface);
+  border-color: var(--control-text-color);
+  background-color: var(--item-hover-bg-color);
 }
 
 .theme-card.active {
-  border-color: var(--accent);
-  background-color: var(--bg-surface);
+  border-color: var(--primary-color);
+  background-color: var(--item-hover-bg-color);
 }
 
 .theme-preview {
   width: 100%;
   height: 60px;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
   overflow: hidden;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background-color: var(--side-bar-bg-color);
+  border: 1px solid var(--border-color);
 }
 
 .theme-preview-header {
   height: 16px;
-  background-color: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--item-hover-bg-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .theme-preview-content {
@@ -234,7 +234,7 @@
 
 .theme-preview-line {
   height: 4px;
-  background-color: var(--text-secondary);
+  background-color: var(--control-text-color);
   border-radius: 2px;
   opacity: 0.5;
 }
@@ -246,7 +246,7 @@
 .theme-card-name {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .theme-card.external .theme-card-name {
@@ -255,7 +255,7 @@
 
 .theme-card-meta {
   font-size: 0.68rem;
-  color: var(--text-secondary);
+  color: var(--control-text-color);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -288,13 +288,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: var(--bg-secondary);
-  border-radius: var(--radius-sm);
+  background-color: var(--side-bar-bg-color);
+  border-radius: 4px;
 }
 
 .shortcut-description {
   font-size: 0.875rem;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .shortcut-key {
@@ -302,11 +302,11 @@
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: var(--monospace);
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--control-text-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

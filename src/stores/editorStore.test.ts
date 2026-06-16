@@ -35,25 +35,25 @@ describe('editorStore settings persistence', () => {
     localStorageStub.getItem.mockReturnValue(null)
     const { useEditorStore } = await loadFreshStore()
 
-    useEditorStore.getState().setTheme('typora:catppuccin-latte:theme')
+    useEditorStore.getState().setTheme('typora:claude-typora-theme-v1-0-0:claude-dark')
 
-    expect(localStorageStub.setItem).toHaveBeenCalledWith('app-theme', 'typora:catppuccin-latte:theme')
-    expect(useEditorStore.getState().currentTheme).toBe('typora:catppuccin-latte:theme')
+    expect(localStorageStub.setItem).toHaveBeenCalledWith('app-theme', 'typora:claude-typora-theme-v1-0-0:claude-dark')
+    expect(useEditorStore.getState().currentTheme).toBe('typora:claude-typora-theme-v1-0-0:claude-dark')
   })
 
-  it('migrates legacy built-in theme ids to bundled Typora CSS theme ids', async () => {
+  it('migrates legacy built-in theme ids to the Claude Typora CSS target', async () => {
     localStorageStub.getItem.mockReturnValue('light')
 
     const { useEditorStore } = await loadFreshStore()
 
-    expect(useEditorStore.getState().currentTheme).toBe('typora:catppuccin-latte:theme')
+    expect(useEditorStore.getState().currentTheme).toBe('typora:claude-typora-theme-v1-0-0:claude')
   })
 
-  it('uses bundled Typora dark CSS as the default theme id', async () => {
+  it('uses Claude Typora CSS as the default theme id', async () => {
     localStorageStub.getItem.mockReturnValue(null)
 
     const { useEditorStore } = await loadFreshStore()
 
-    expect(useEditorStore.getState().currentTheme).toBe('typora:catppuccin-mocha:theme')
+    expect(useEditorStore.getState().currentTheme).toBe('typora:claude-typora-theme-v1-0-0:claude')
   })
 })

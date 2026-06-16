@@ -127,13 +127,6 @@ tt {
   background: var(--hover-color);
 }
 
-#file-library-search-input {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: #eff1f5;
-  color: var(--font-color);
-}
-
 #outline-content,
 .outline-content {
   color: var(--sidebar-font-color);

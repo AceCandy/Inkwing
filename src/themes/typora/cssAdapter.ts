@@ -6,69 +6,16 @@ const TYPORA_EDITOR_SCOPE = `${TYPORA_BODY_SCOPE} #write`
 const TYPORA_PREVIEW_SCOPE = `${TYPORA_SCOPE} .preview-content`
 const TYPORA_SIDEBAR_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar`
 const TYPORA_RESIZER_SCOPE = `${TYPORA_BODY_SCOPE} #typora-sidebar-resizer`
-const TYPORA_OUTLINE_SCOPE = `${TYPORA_BODY_SCOPE} #outline-content`
+const TYPORA_OUTLINE_ID_SCOPE = `${TYPORA_BODY_SCOPE} #outline-content`
+const TYPORA_OUTLINE_CLASS_SCOPE = `${TYPORA_BODY_SCOPE} .outline-content`
+const TYPORA_LINE_HEIGHT_VARIABLE = '--typora-line-height'
 const TYPORA_CONTENT_SCOPES = [TYPORA_EDITOR_SCOPE, TYPORA_PREVIEW_SCOPE] as const
-const TYPORA_APP_CONTENT_SCOPES = [
-  TYPORA_EDITOR_SCOPE,
-  `${TYPORA_BODY_SCOPE} .preview-content`,
-] as const
-const TYPORA_DEFAULT_FONT_SIZE = '17px'
-
-const TYPORA_CONTENT_RESET_CSS = `
-${TYPORA_CONTENT_SCOPES.join(', ')}{font-size:var(--typora-font-size, ${TYPORA_DEFAULT_FONT_SIZE});}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} h1`).join(', ')}{border-bottom:0;padding-bottom:0;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} h1, ${scope} h2, ${scope} h3, ${scope} h4, ${scope} h5, ${scope} h6`).join(', ')}{color:inherit;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} blockquote`).join(', ')}{background:transparent;border-radius:0;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} blockquote p`).join(', ')}{color:inherit;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} pre`).join(', ')}{position:relative;background:transparent;border:0;border-radius:0;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} pre code`).join(', ')}{background:transparent;border:0;color:inherit;padding:0;}
-${TYPORA_CONTENT_SCOPES.map((scope) => `${scope} li::marker`).join(', ')}{color:currentColor;font-weight:inherit;}
-`
-
-// 这些规则补齐 Inkwing 与 Typora shell 的结构差异，避免组件默认样式压过导入主题。
-const TYPORA_APP_COMPAT_CSS = `
-${TYPORA_APP_CONTENT_SCOPES.join(', ')}{box-sizing:border-box;}
-${TYPORA_APP_CONTENT_SCOPES.map((scope) => `${scope} > *`).join(', ')}{max-width:100%;}
-${TYPORA_BODY_SCOPE} .milkdown-editor,
-${TYPORA_BODY_SCOPE} .preview-container{padding:0;}
-${TYPORA_BODY_SCOPE} #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}
-${TYPORA_BODY_SCOPE} #typora-sidebar #file-library-search{display:none;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline.ty-on-search #file-library-search-result{display:none;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline.ty-on-search #outline-content{height:100%!important;max-height:100%!important;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline #file-library{display:none;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-files #outline-content{display:none;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-outline #outline-content{display:block;}
-${TYPORA_BODY_SCOPE} #typora-sidebar.active-tab-files #file-library{display:block;}
-`
 
 const CODE_FENCE_BLOCK_TARGETS = [
   `${TYPORA_EDITOR_SCOPE} pre`,
   `${TYPORA_PREVIEW_SCOPE} pre`,
 ]
 const CODE_FENCE_CODE_TARGETS = CODE_FENCE_BLOCK_TARGETS.map((selector) => `${selector} code`)
-
-const TYPORA_VARIABLE_MAP: Record<string, readonly string[]> = {
-  '--bg-color': ['--bg-primary', '--bg-secondary', '--theme-editor-bg', '--theme-preview-bg'],
-  '--hover-color': ['--bg-surface', '--theme-blockquote-bg', '--theme-table-row-hover'],
-  '--font-color': ['--text-primary', '--theme-text-primary'],
-  '--sidebar-font-color': ['--text-secondary', '--theme-text-secondary'],
-  '--border-color': ['--border', '--theme-border', '--theme-table-border'],
-  '--table-th-border': ['--theme-table-border'],
-  '--table-td-border': ['--theme-table-border'],
-  '--code-bg-color': ['--theme-inline-code-bg'],
-  '--code-font-color': ['--theme-inline-code-text'],
-  '--code-border': ['--theme-inline-code-border'],
-  '--pre-bg-color': ['--theme-code-bg'],
-  '--pre-border-color': ['--theme-code-border'],
-  '--pre-inputfont-color': ['--theme-code-text'],
-  '--hr-color': ['--theme-hr-color', '--theme-border'],
-  '--quote-font-color': ['--theme-text-secondary'],
-  '--quote-boder': ['--theme-blockquote-border'],
-  '--LOGO-color': ['--accent', '--theme-accent', '--theme-link', '--theme-link-hover', '--theme-blockquote-border'],
-  '--font-serif': ['--theme-font-family'],
-  '--font-sans': ['--font-sans'],
-  '--font-mono': ['--font-mono', '--theme-font-family-mono'],
-}
 
 const TYPORA_SHELL_SELECTOR_PATTERNS = [
   /(^|[^\w-])#typora-/i,
@@ -78,6 +25,8 @@ const TYPORA_SHELL_SELECTOR_PATTERNS = [
 const TYPORA_SUPPORTED_SHELL_SELECTOR_PATTERNS = [
   /(^|[^\w-])\.stopselect\.dropmenu\.sidebar-menu\b/i,
   /(^|[^\w-])\.ty-sidebar-search-panel\b/i,
+  /(^|[^\w-])#ty-sidebar-search-tabs\b/i,
+  /(^|[^\w-])#ty-sidebar-search-back-btn\b/i,
 ]
 
 const PASSTHROUGH_AT_RULES = new Set(['@font-face', '@keyframes', '@-webkit-keyframes', '@-moz-keyframes'])
@@ -89,6 +38,7 @@ const TYPORA_BODY_STATE_CLASSES = new Set([
   'mac-os-11',
   'mac-os',
   'mac-seamless-mode',
+  'no-animation',
   'no-collapse-outline',
   'os-windows',
   'pin-outline',
@@ -125,32 +75,107 @@ export function extractTyporaShellVariables(css: string): Record<string, string>
   const result: Record<string, string> = {}
   const cleanedCss = css.replace(/\/\*[\s\S]*?\*\//g, '')
 
-  cleanedCss.replace(/--[A-Za-z0-9_-]+\s*:\s*[^;{}]+;/g, (declaration) => {
-    const match = declaration.match(/(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+);/)
-    if (!match) {
-      return declaration
+  let cursor = 0
+  while (cursor < cleanedCss.length) {
+    const nextBlockStart = findNextTopLevelBlockStart(cleanedCss, cursor)
+    if (nextBlockStart === -1) {
+      break
     }
 
-    const [, variableName, value] = match
-    const mappedVariables = TYPORA_VARIABLE_MAP[variableName]
-
-    if (!mappedVariables) {
-      return declaration
+    const blockEnd = findMatchingBrace(cleanedCss, nextBlockStart.braceIndex)
+    if (blockEnd === -1) {
+      break
     }
 
-    mappedVariables.forEach((mappedVariable) => {
-      result[mappedVariable] = value.trim()
-    })
+    const prelude = cleanedCss.slice(nextBlockStart.start, nextBlockStart.braceIndex).trim()
+    if (prelude && !prelude.startsWith('@')) {
+      const selectors = splitSelectors(prelude)
+      if (selectors.some(isTyporaRootVariableSelector)) {
+        const body = cleanedCss.slice(nextBlockStart.braceIndex + 1, blockEnd)
+        body.replace(/--[A-Za-z0-9_-]+\s*:\s*[^;{}]+;/g, (declaration) => {
+          const match = declaration.match(/(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+);/)
+          if (match) {
+            result[match[1]] = match[2].trim()
+          }
+          return declaration
+        })
+      }
+    }
 
-    return declaration
-  })
+    cursor = blockEnd + 1
+  }
+
+  const rootLineHeight = extractTyporaRootLineHeight(cleanedCss)
+  if (rootLineHeight) {
+    result[TYPORA_LINE_HEIGHT_VARIABLE] = rootLineHeight
+  }
 
   return result
 }
 
+function extractTyporaRootLineHeight(css: string): string | null {
+  let cursor = 0
+  let lineHeight: string | null = null
+
+  while (cursor < css.length) {
+    const nextBlockStart = findNextTopLevelBlockStart(css, cursor)
+
+    if (nextBlockStart === -1) {
+      break
+    }
+
+    const blockEnd = findMatchingBrace(css, nextBlockStart.braceIndex)
+    if (blockEnd === -1) {
+      break
+    }
+
+    const prelude = stripCssComments(css.slice(nextBlockStart.start, nextBlockStart.braceIndex)).trim()
+    if (prelude && !prelude.startsWith('@')) {
+      const selectors = splitSelectors(prelude)
+      if (selectors.some(isTyporaRootLineHeightSelector)) {
+        const body = css.slice(nextBlockStart.braceIndex + 1, blockEnd)
+        const match = body.match(/(?:^|[;\s])line-height\s*:\s*([^;{}]+);/i)
+        const nextLineHeight = match?.[1].trim()
+        if (nextLineHeight && isConcreteTyporaLineHeightValue(nextLineHeight)) {
+          lineHeight = nextLineHeight
+        }
+      }
+    }
+
+    cursor = blockEnd + 1
+  }
+
+  return lineHeight
+}
+
+function isTyporaRootVariableSelector(selector: string): boolean {
+  const normalizedSelector = selector.trim()
+  return (
+    normalizedSelector === 'html' ||
+    normalizedSelector === 'body' ||
+    normalizedSelector === ':root' ||
+    normalizedSelector === ':host' ||
+    normalizedSelector === 'html body'
+  )
+}
+
+function isConcreteTyporaLineHeightValue(value: string): boolean {
+  return !/^(?:inherit|initial|unset|revert|revert-layer)$/i.test(value.trim())
+}
+
+function isTyporaRootLineHeightSelector(selector: string): boolean {
+  const normalizedSelector = selector.trim()
+  return (
+    normalizedSelector === 'html' ||
+    normalizedSelector === 'body' ||
+    normalizedSelector === ':root' ||
+    normalizedSelector === ':host'
+  )
+}
+
 export function adaptTyporaCss(css: string, options: TyporaCssAdaptOptions): string {
   const cssWithAssetsRewritten = rewriteCssAssetUrls(css, options.assetBasePath, options.toAssetUrl)
-  return `${TYPORA_CONTENT_RESET_CSS}${transformStylesheet(cssWithAssetsRewritten)}${TYPORA_APP_COMPAT_CSS}`
+  return transformStylesheet(cssWithAssetsRewritten)
 }
 
 function transformStylesheet(css: string): string {
@@ -227,32 +252,7 @@ function expandTyporaOutlineActiveWrapperSelector(selector: string): string[] {
 }
 
 function transformRuleBody(body: string): string {
-  let nextBody = body
-
-  nextBody = nextBody.replace(/var\(\s*(--[A-Za-z0-9_-]+)\s*\)/g, (match, variableName) => {
-    const targetVariable = TYPORA_VARIABLE_MAP[variableName]?.[0]
-    return targetVariable ? `var(${targetVariable})` : match
-  })
-
-  nextBody = nextBody.replace(/--[A-Za-z0-9_-]+\s*:\s*[^;{}]+;/g, (declaration) => {
-    const match = declaration.match(/(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+);/)
-    if (!match) {
-      return declaration
-    }
-
-    const [, variableName, value] = match
-    const mappedVariables = TYPORA_VARIABLE_MAP[variableName]
-    if (!mappedVariables) {
-      return declaration
-    }
-
-    return [
-      declaration.trim(),
-      ...mappedVariables.map((mappedVariable) => `${mappedVariable}: ${value.trim()};`),
-    ].join(' ')
-  })
-
-  return nextBody
+  return body
 }
 
 function transformSelector(selector: string): string[] {
@@ -399,7 +399,11 @@ function transformTyporaOutlineSelector(selector: string): string[] | null {
 
   const bodyStateSelector = extractLeadingTyporaBodyStateSelector(selector)
   if (bodyStateSelector) {
-    const outlineSelector = replaceTyporaOutlineRootSelector(bodyStateSelector.selector, '#outline-content')
+    const outlineSelector = replaceTyporaOutlineRootSelector(
+      bodyStateSelector.selector,
+      '#outline-content',
+      '.outline-content',
+    )
 
     return [
       `${buildTyporaBodyScope(bodyStateSelector.classes)} ${outlineSelector}`,
@@ -407,14 +411,14 @@ function transformTyporaOutlineSelector(selector: string): string[] | null {
   }
 
   return [
-    replaceTyporaOutlineRootSelector(selector, TYPORA_OUTLINE_SCOPE),
+    replaceTyporaOutlineRootSelector(selector, TYPORA_OUTLINE_ID_SCOPE, TYPORA_OUTLINE_CLASS_SCOPE),
   ]
 }
 
-function replaceTyporaOutlineRootSelector(selector: string, target: string): string {
+function replaceTyporaOutlineRootSelector(selector: string, idTarget: string, classTarget: string): string {
   return selector.replace(
-    /(^|[^\w-])(?:#outline-content|\.outline-content)\b/g,
-    (_match, prefix) => `${prefix}${target}`,
+    /(^|[^\w-])(#outline-content|\.outline-content)\b/g,
+    (_match, prefix, outlineRoot) => `${prefix}${outlineRoot === '#outline-content' ? idTarget : classTarget}`,
   )
 }
 

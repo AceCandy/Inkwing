@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::Emitter;
+use tauri::Manager;
 use tauri::TitleBarStyle;
-use tauri::WebviewWindowBuilder;
 
 pub mod typora_themes;
 use crate::typora_themes::{import_typora_theme, list_typora_themes, read_typora_theme_css};
@@ -266,6 +266,37 @@ async fn create_window(app: tauri::AppHandle, file_path: Option<String>) -> Resu
     Ok(label)
 }
 
+#[cfg(target_os = "macos")]
+fn activate_macos_app() {
+    use objc2::MainThreadMarker;
+    use objc2_app_kit::NSApplication;
+
+    // dev 模式下裸二进制有时只创建窗口但不抢前台，显式激活当前 NSApplication。
+    unsafe {
+        let mtm = MainThreadMarker::new_unchecked();
+        #[allow(deprecated)]
+        NSApplication::sharedApplication(mtm).activateIgnoringOtherApps(true);
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn refocus_macos_app(app: tauri::AppHandle) {
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(300));
+
+        let app_for_main_thread = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            if let Some(main_window) = app_for_main_thread.get_webview_window("main") {
+                let _ = main_window.show();
+                let _ = main_window.unminimize();
+                let _ = main_window.set_focus();
+            }
+
+            activate_macos_app();
+        });
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -274,19 +305,28 @@ pub fn run() {
         .setup(|app| {
             let menu = build_menu(app.handle())?;
             menu.set_as_app_menu()?;
-            let main_window_config = app
-                .config()
-                .app
-                .windows
-                .iter()
-                .find(|window| window.label == "main")
+
+            #[cfg(target_os = "macos")]
+            {
+                app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                app.show()?;
+            }
+
+            let main_window = app
+                .get_webview_window("main")
                 .ok_or(tauri::Error::WindowNotFound)?;
-            let main_window = WebviewWindowBuilder::from_config(app.handle(), main_window_config)?
-                .menu(menu)
-                .build()?;
-            // 主窗口由 setup 显式创建和聚焦，避免 dev/release 运行时出现有进程但无可见窗口。
+            let _ = main_window.set_menu(menu)?;
+            // 主窗口由 Tauri 配置创建；setup 只负责显式显示和聚焦，避免 dev/release 启动后进程存在但窗口不可见。
             main_window.show()?;
+            main_window.unminimize()?;
             main_window.set_focus()?;
+
+            #[cfg(target_os = "macos")]
+            {
+                activate_macos_app();
+                refocus_macos_app(app.handle().clone());
+            }
+
             Ok(())
         })
         .on_menu_event(|app, event| {

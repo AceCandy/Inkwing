@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsModal } from './index'
 
 vi.mock('../../stores/editorStore', () => ({
-	  useEditorStore: () => ({
-	    currentTheme: 'typora:catppuccin-mocha:theme',
+  useEditorStore: () => ({
+    currentTheme: 'typora:claude-typora-theme-v1-0-0:claude',
     setTheme: vi.fn(),
     setShowSettings: vi.fn(),
     themeError: '主题加载失败',

@@ -44,7 +44,14 @@ let root: Root | null = null
 let container: HTMLDivElement | null = null
 
 beforeEach(() => {
-  document.body.classList.remove('active-tab-outline', 'active-tab-files', 'ty-show-search', 'ty-on-search')
+  document.body.classList.remove(
+    'active-tab-outline',
+    'active-tab-files',
+    'ty-show-outline-filter',
+    'ty-on-outline-filter',
+    'ty-show-search',
+    'ty-on-search',
+  )
   sidebarTestState.invoke.mockResolvedValue({
     name: 'notes',
     path: '/Users/demo/Documents/notes',
@@ -62,6 +69,7 @@ afterEach(() => {
   sidebarTestState.invoke.mockReset()
   sidebarTestState.openFile.mockReset()
   document.body.classList.remove('active-tab-outline', 'active-tab-files', 'ty-show-search', 'ty-on-search')
+  document.body.classList.remove('ty-show-outline-filter', 'ty-on-outline-filter')
   container?.remove()
   root = null
   container = null
@@ -113,50 +121,64 @@ describe('Sidebar', () => {
     expect(html).toContain('id="info-panel-tab-outline"')
     const headerShell = html.match(/<div class="sidebar-osx-tab ty-tab-wrapper"[^>]*>/)?.[0] ?? ''
     const headerTabs = html.match(/<div class="sidebar-tabs"[^>]*>/)?.[0] ?? ''
-    const switchButton = html.match(/<button[^>]+id="switch-sidebar-icon"[^>]*>/)?.[0] ?? ''
-    const searchButton = html.match(/<button[^>]+id="sidebar-search-btn"[^>]*>/)?.[0] ?? ''
+    const switchControl = html.match(/<div class="sidebar-tab-btn sidebar-hover-action sidebar-left-action"[^>]+id="switch-sidebar-icon"[^>]*>/)?.[0] ?? ''
+    const searchControl = html.match(/<div class="sidebar-tab-btn sidebar-hover-action sidebar-right-action"[^>]+id="sidebar-search-btn"[^>]*>/)?.[0] ?? ''
     const titleTab = html.match(/<div class="sidebar-tab active sidebar-tab-current"[^>]*>/)?.[0] ?? ''
 
     expect(headerShell).not.toContain('data-tauri-drag-region')
     expect(headerTabs).not.toContain('data-tauri-drag-region')
-    expect(switchButton).not.toContain('data-tauri-drag-region')
-    expect(searchButton).not.toContain('data-tauri-drag-region')
+    expect(switchControl).not.toContain('data-tauri-drag-region')
+    expect(searchControl).not.toContain('data-tauri-drag-region')
     expect(titleTab).not.toContain('data-tauri-drag-region')
     expect(html).not.toContain('class="sidebar-osx-tab ty-tab-wrapper searching"')
     expect(html).toContain('data-sidebar-tab="outline"')
     expect(html).toContain('id="sidepanel-segmented-input-files"')
-    expect(html).toContain('id="sidepanel-segmented-input-outline">大纲</div>')
+    expect(html).toContain('id="sidepanel-segmented-input-outline">Outline</div>')
     expect(html).not.toContain('sidebar-tab-title')
     expect(html).toContain('id="switch-sidebar-icon"')
     expect(html).toContain('class="sidebar-tab-btn sidebar-hover-action sidebar-left-action"')
-    expect(html).toContain('type="button"')
-    expect(html).toContain('切换到文件树视图')
-    expect(html).toContain('class="ty-icon ty-file-tree sidebar-switch-glyph sidebar-switch-glyph-typora"')
-    expect(html).toContain('viewBox="0 0 1024 1024"')
-    expect(html).toContain('d="M1024 320v256h-704v-64h-128v192h576v256h-768v-256h128v-640h192v-128h704v256h-704v-64h-128v320h128v-128z"')
+    expect(html).not.toContain('<button')
+    expect(html).toContain('Switch to File List view')
+    expect(html).toContain('class="ty-icon ty-three-cells"')
+    expect(html).not.toContain('sidebar-switch-glyph')
+    expect(html).not.toContain('viewBox="0 0 1024 1024"')
     expect(html).toContain('class="sidebar-tab active sidebar-tab-current"')
     expect(html).toContain('id="sidepanel-segmented-input-outline"')
     expect(html).toContain('id="ty-sidebar-search-tabs"')
     expect(html).toContain('class="sidebar-tab-btn sidebar-hover-action sidebar-right-action"')
-    expect(html).toContain('class="ion-ios7-search-strong sidebar-search-glyph"')
-    expect(html).toContain('class="typora-search-ring"')
-    expect(html).toContain('class="typora-search-handle"')
+    expect(html).toContain('class="ion-ios7-search-strong"')
+    expect(html).not.toContain('sidebar-search-glyph')
+    expect(html).not.toContain('class="typora-search-ring"')
+    expect(html).not.toContain('class="typora-search-handle"')
     expect(html.indexOf('id="ty-sidebar-search-tabs"')).toBeLessThan(
       html.indexOf('id="file-library-search-input"'),
+    )
+    expect(html.indexOf('id="file-library-search-input"')).toBeLessThan(
+      html.indexOf('id="sidebar-content"'),
+    )
+    expect(html.indexOf('<div id="file-library-search">')).toBeLessThan(
+      html.indexOf('id="file-library-search-result"'),
     )
     expect(html).toContain('id="filesearch-case-option-btn"')
     expect(html).toContain('id="filesearch-word-option-btn"')
     expect(html).toContain('id="filesearch-regexp-option-btn"')
+    expect(html).toContain('id="close-outline-filter-btn"')
     expect(html).toContain('id="file-library-search"')
     expect(html).not.toContain('id="file-library-search-panel"')
-    expect(html.indexOf('id="file-library-search-input"')).toBeLessThan(
-      html.indexOf('id="sidebar-content"'),
-    )
     expect(html).toContain('id="file-library-search-result"')
+    expect(html).toContain('id="sidebar-loading-template" class="file-list-item"')
+    expect(html).toContain('id="file-library-list-children" data-after-content="No Files Available"')
     expect(html).toContain('id="file-library"')
-    expect(html).toContain('id="file-library-tree" class="no-selection" data-state=""')
+    expect(html).toContain('id="file-library-tree" class="no-selection" data-state="" data-after-content="No Folder is Opened."')
     expect(html).toContain('id="file-info-content"')
     expect(html).toContain('id="ty-sidebar-footer"')
+    expect(html).toContain('id="sidebar-footer-main-item-label">Open Folder...</span>')
+    expect(html).toContain('id="reveal-folder-from-sidebar-menu"')
+    expect(html).toContain('id="refresh-from-sidebar-menu"')
+    expect(html).toContain('id="ty-group-by-folder-btn"')
+    expect(html).toContain('id="ty-sort-by-natural-btn"')
+    expect(html).toContain('data-localize="Recent Locations"')
+    expect(html).toContain('id="folder-menu-item-after"')
     expect(html).toContain('<div id="outline-content" class="outline-content sidebar-content-content"')
     expect(html).not.toContain('outline-list')
     expect(html).not.toContain('outline-arrow-container')
@@ -167,29 +189,29 @@ describe('Sidebar', () => {
     expect(html).toContain('id="sidebar-content"')
     expect(html).toContain('class="outline-item-wrapper outline-h1 outline-item-open"')
     expect(html).toContain('class="outline-item-wrapper outline-h2')
-    expect(html).not.toContain('class="outline-item-wrapper outline-h3')
+    expect(html).toContain('class="outline-item-wrapper outline-h3')
     expect(html).toContain('<span class="outline-expander"></span><span class="outline-label"')
     expect(html).toContain('<ul class="outline-children"></ul>')
     expect(html).not.toContain('outline-item-active')
     expect(html).not.toContain('outline-active')
   })
 
-  it('expands root outline branches by default and keeps nested branches collapsible', () => {
+  it('keeps outline branches expanded by default and still allows explicit collapse', () => {
     const rendered = renderSidebar()
 
     expect(rendered.textContent).toContain('三层架构 + 热点下钻：设计文档')
     expect(rendered.textContent).toContain('架构总览')
     expect(rendered.textContent).toContain('L0：领域级 — 领域模型 & 规则')
-    expect(rendered.textContent).not.toContain('职责')
+    expect(rendered.textContent).toContain('职责')
 
-    const l0Expander = rendered.querySelector('.outline-h2.outline-item-close > .outline-item > .outline-expander') as HTMLElement
+    const l0Expander = rendered.querySelector('.outline-h2.outline-item-open > .outline-item > .outline-expander') as HTMLElement
 
     act(() => {
       l0Expander.click()
     })
 
-    expect(rendered.textContent).toContain('职责')
-    expect(rendered.textContent).toContain('举例：电商平台')
+    expect(rendered.textContent).not.toContain('职责')
+    expect(rendered.textContent).not.toContain('举例：电商平台')
 
     const rootExpander = rendered.querySelector('.outline-h1 > .outline-item > .outline-expander') as HTMLElement
 
@@ -201,14 +223,23 @@ describe('Sidebar', () => {
     expect(rendered.textContent).not.toContain('职责')
   })
 
+  it('marks the first outline item active before viewport sync can run', () => {
+    const rendered = renderSidebar()
+    const firstOutlineItem = rendered.querySelector('#outline-content .outline-item')
+    const firstOutlineLabel = rendered.querySelector('#outline-content .outline-label')
+
+    expect(firstOutlineItem?.className).toContain('outline-item-active')
+    expect(firstOutlineLabel?.className).toContain('outline-active')
+  })
+
   it('responds to Typora header switch and search button clicks', () => {
     const rendered = renderSidebar()
     const sidebar = rendered.querySelector('#typora-sidebar') as HTMLElement
-    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLButtonElement
-    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLButtonElement
+    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLElement
+    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLElement
 
     expect(sidebar.dataset.sidebarTab).toBe('outline')
-    expect(rendered.querySelector('.sidebar-tab-current')?.textContent).toBe('大纲')
+    expect(rendered.querySelector('.sidebar-tab-current')?.textContent).toBe('Outline')
     expect(sidebar.className).not.toContain('ty-show-search')
     expect(document.body.classList.contains('active-tab-outline')).toBe(true)
     expect(document.body.classList.contains('active-tab-files')).toBe(false)
@@ -219,9 +250,9 @@ describe('Sidebar', () => {
 
     expect(sidebar.dataset.sidebarTab).toBe('files')
     expect(sidebar.className).toContain('active-tab-files')
-    expect(rendered.querySelector('.sidebar-tab-current')?.textContent).toBe('文件')
-    expect(switchButton.getAttribute('aria-label')).toBe('切换到大纲视图')
-    expect(rendered.querySelector('#switch-sidebar-icon .sidebar-switch-glyph-outline')).not.toBeNull()
+    expect(rendered.querySelector('.sidebar-tab-current')?.textContent).toBe('Files')
+    expect(switchButton.getAttribute('ty-hint')).toBe('Switch to Outline view')
+    expect(rendered.querySelector('#switch-sidebar-icon .ty-icon.ty-file-tree')).not.toBeNull()
     expect(document.body.classList.contains('active-tab-files')).toBe(true)
     expect(document.body.classList.contains('active-tab-outline')).toBe(false)
 
@@ -231,26 +262,33 @@ describe('Sidebar', () => {
 
     expect(sidebar.className).toContain('ty-show-search')
     expect(sidebar.className).toContain('ty-on-search')
-    expect(rendered.querySelector('.sidebar-osx-tab')?.className).toContain('searching')
-    expect(rendered.querySelector('#file-library-search-input')).not.toBeNull()
-    expect(document.activeElement).toBe(rendered.querySelector('#file-library-search-input'))
-    expect(document.body.classList.contains('ty-show-search')).toBe(false)
-    expect(document.body.classList.contains('ty-on-search')).toBe(false)
+    expect(rendered.querySelector('.sidebar-osx-tab')?.className).toBe('sidebar-osx-tab ty-tab-wrapper')
+    const searchInput = rendered.querySelector('#file-library-search-input')
+    expect(searchInput).not.toBeNull()
+    expect(searchInput?.parentElement?.id).toBe('ty-sidebar-search-tabs')
+    expect(rendered.querySelector('#file-library-search-panel')).toBeNull()
+    expect(document.activeElement).toBe(searchInput)
+    expect(document.body.classList.contains('ty-show-search')).toBe(true)
+    expect(document.body.classList.contains('ty-on-search')).toBe(true)
   })
 
   it('searches all outline headings without expanding collapsed branches', () => {
     const rendered = renderSidebar()
-    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLButtonElement
+    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLElement
 
     expect(rendered.textContent).toContain('三层架构 + 热点下钻：设计文档')
     expect(rendered.textContent).toContain('架构总览')
-    expect(rendered.textContent).not.toContain('职责')
+    expect(rendered.textContent).toContain('职责')
 
     act(() => {
       searchButton.click()
     })
     changeSearchInput(rendered, '职责')
 
+    expect(rendered.querySelector('#typora-sidebar')?.className).toContain('ty-show-outline-filter')
+    expect(rendered.querySelector('#typora-sidebar')?.className).toContain('ty-on-outline-filter')
+    expect(document.body.classList.contains('ty-show-outline-filter')).toBe(true)
+    expect(document.body.classList.contains('ty-on-outline-filter')).toBe(true)
     expect(rendered.querySelector('#outline-content')?.textContent).toContain('职责')
     expect(rendered.querySelector('#outline-content')?.textContent).not.toContain('三层架构 + 热点下钻：设计文档')
     expect(rendered.querySelector('#file-library')?.textContent).not.toContain('职责')
@@ -285,7 +323,7 @@ describe('Sidebar', () => {
     })
 
     const rendered = renderSidebar()
-    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLButtonElement
+    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLElement
 
     await act(async () => {
       switchButton.click()
@@ -295,19 +333,25 @@ describe('Sidebar', () => {
     expect(sidebarTestState.invoke).toHaveBeenCalledWith('list_file_tree', {
       filePath: sidebarTestState.filePath,
     })
-    expect(rendered.querySelector('#file-library-tree .file-tree-root')?.textContent).toContain('notes')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')?.textContent).toContain('drafts')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"]')?.className).toContain('active')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')?.className).toContain('file-library-node')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')?.getAttribute('data-is-directory')).toBe('true')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"] .file-node-content')).not.toBeNull()
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"] .file-node-open-state .fa-caret-right')).not.toBeNull()
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"] .file-node-icon .fa-folder')).not.toBeNull()
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"]')?.className).toContain('file-library-file-node')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"]')?.getAttribute('data-is-directory')).toBe('false')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"] .file-node-title-name-part')?.textContent).toBe('current')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"] .file-node-title-ext-part')?.textContent).toBe('.md')
+    expect(rendered.querySelector('#file-library-tree .file-node-root')?.textContent).toContain('notes')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.textContent).toContain('drafts')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"]')?.className).toContain('active')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.className).toContain('file-library-node')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.className).toContain('file-node-collapsed')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.getAttribute('data-has-sub')).toBe('true')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.getAttribute('data-is-directory')).toBe('true')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-node-content')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-node-open-state .fa-caret-right')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-node-icon.fa-folder')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-tree-rename-div')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-tree-rename-input')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"]')?.className).toContain('file-library-file-node')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"]')?.getAttribute('data-has-sub')).toBe('false')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"]')?.getAttribute('data-is-directory')).toBe('false')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"] .file-node-icon.fa-file-text-o')).not.toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"] .file-node-title-name-part')?.textContent).toBe('current')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"] .file-node-title-ext-part')?.textContent).toBe('.md')
   })
 
   it('collapses file tree subdirectories by default and expands them with the Typora chevron', async () => {
@@ -333,25 +377,25 @@ describe('Sidebar', () => {
     })
 
     const rendered = renderSidebar()
-    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLButtonElement
+    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLElement
 
     await act(async () => {
       switchButton.click()
       await Promise.resolve()
     })
 
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes"]')?.className).toContain('file-tree-open')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')?.className).toContain('file-tree-close')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes"]')?.className).toContain('file-node-expanded')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.className).toContain('file-node-collapsed')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
 
-    const draftsExpander = rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"] .file-tree-expander') as HTMLElement
+    const draftsExpander = rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"] .file-node-open-state') as HTMLElement
 
     await act(async () => {
       draftsExpander.click()
       await Promise.resolve()
     })
 
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts/chapter.md"]')?.textContent).toContain('chapter.md')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts/chapter.md"]')?.textContent).toContain('chapter.md')
   })
 
   it('searches files by filename and keeps only matching ancestor folders', async () => {
@@ -396,15 +440,15 @@ describe('Sidebar', () => {
     })
 
     const rendered = renderSidebar()
-    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLButtonElement
-    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLButtonElement
+    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLElement
+    const searchButton = rendered.querySelector('#sidebar-search-btn') as HTMLElement
 
     await act(async () => {
       switchButton.click()
       await Promise.resolve()
     })
 
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts/chapter.md"]')).toBeNull()
 
     await act(async () => {
       searchButton.click()
@@ -413,15 +457,15 @@ describe('Sidebar', () => {
     changeSearchInput(rendered, 'chapter')
 
     expect(rendered.querySelector('#file-library-tree')?.textContent).toContain('notes')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')?.textContent).toContain('drafts')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts/chapter.md"]')?.textContent).toContain('chapter.md')
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/current.md"]')).toBeNull()
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/archive"]')).toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')?.textContent).toContain('drafts')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts/chapter.md"]')?.textContent).toContain('chapter.md')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/current.md"]')).toBeNull()
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/archive"]')).toBeNull()
 
     changeSearchInput(rendered, 'drafts')
 
-    expect(rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/drafts"]')).toBeNull()
-    expect(rendered.querySelector('#file-library-tree')?.textContent).toContain('没有匹配的文件')
+    expect(rendered.querySelector('[data-path="/Users/demo/Documents/notes/drafts"]')).toBeNull()
+    expect(rendered.querySelector('#file-library-tree')?.textContent).toContain('No result found.')
   })
 
   it('opens a file tree item in the current editor window', async () => {
@@ -456,14 +500,14 @@ describe('Sidebar', () => {
     })
 
     const rendered = renderSidebar()
-    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLButtonElement
+    const switchButton = rendered.querySelector('#switch-sidebar-icon') as HTMLElement
 
     await act(async () => {
       switchButton.click()
       await Promise.resolve()
     })
 
-    const otherFile = rendered.querySelector('[data-file-tree-path="/Users/demo/Documents/notes/other.md"]') as HTMLElement
+    const otherFile = rendered.querySelector('[data-path="/Users/demo/Documents/notes/other.md"]') as HTMLElement
 
     await act(async () => {
       otherFile.click()

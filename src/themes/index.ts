@@ -1,7 +1,7 @@
 export type { TyporaThemeOption } from './typora/types'
 
 import { listTyporaThemes } from './typora/api'
-import { BUNDLED_TYPORA_DARK_THEME_ID, migrateLegacyThemeId } from './typora/bundled'
+import { migrateLegacyThemeId } from './typora/bundled'
 import { applyTyporaTheme } from './typora/runtime'
 import type { TyporaThemeOption } from './typora/types'
 
@@ -42,25 +42,15 @@ export const getAllThemeOptions = getAllThemes
 
 export function getThemeOption(id: string): ThemeOption {
   const normalizedId = migrateLegacyThemeId(id)
-  return (
-    typoraThemes.find((theme) => theme.id === normalizedId) ??
-    typoraThemes[0] ??
-    createBundledFallbackTheme()
-  )
+  const theme = typoraThemes.find((item) => item.id === normalizedId)
+
+  if (!theme) {
+    throw new Error(`Typora 主题不存在: ${normalizedId}`)
+  }
+
+  return theme
 }
 
 export async function applyThemeOption(theme: ThemeOption): Promise<void> {
   await applyTyporaTheme(theme)
-}
-
-function createBundledFallbackTheme(): TyporaThemeOption {
-  return {
-    type: 'typora',
-    id: BUNDLED_TYPORA_DARK_THEME_ID,
-    name: 'Catppuccin Mocha / Theme',
-    packageId: 'catppuccin-mocha',
-    packageName: 'Catppuccin Mocha',
-    cssFile: 'theme.css',
-    basePath: '',
-  }
 }

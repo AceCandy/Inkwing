@@ -15,7 +15,7 @@ const editorState = vi.hoisted(() => ({
   mode: 'wysiwyg' as const,
   showSettings: false,
   showSidebar: true,
-  currentTheme: 'typora:catppuccin-mocha:theme',
+  currentTheme: 'typora:claude-typora-theme-v1-0-0:claude',
   newFile: vi.fn(),
   openFile: vi.fn(),
   setShowSettings: vi.fn(),
@@ -34,10 +34,6 @@ vi.mock('@tauri-apps/api/event', () => ({
 
 vi.mock('./components/Editor', () => ({
   MilkdownEditor: () => <div className="milkdown-editor" />,
-}))
-
-vi.mock('./components/Preview', () => ({
-  Preview: () => <div className="preview-container" />,
 }))
 
 vi.mock('./components/SettingsModal', () => ({
@@ -61,11 +57,11 @@ vi.mock('./themes', () => ({
   getThemeOption: vi.fn((theme: string) => ({
     type: 'typora',
     id: theme,
-    packageId: 'catppuccin-mocha',
-    packageName: 'Catppuccin Mocha',
-    name: 'Catppuccin Mocha / Theme',
-    cssFile: 'theme.css',
-    basePath: '/themes/catppuccin-mocha',
+    packageId: 'claude-typora-theme-v1-0-0',
+    packageName: 'Claude Typora Theme',
+    name: 'Claude Typora Theme / Claude',
+    cssFile: 'claude.css',
+    basePath: '/themes/claude',
   })),
   refreshExternalThemes: vi.fn(),
 }))
@@ -103,22 +99,15 @@ describe('App open file entry points', () => {
     host.remove()
   })
 
-  it('opens from the welcome screen in the current window', async () => {
+  it('starts in the Typora shell without a welcome fallback', async () => {
     await act(async () => {
       root.render(<App />)
     })
 
-    const openButton = Array.from(host.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('welcome.openFile')
-    )
-
-    expect(openButton).toBeDefined()
-
-    await act(async () => {
-      openButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-
-    expect(openMarkdownFileInCurrentWindow).toHaveBeenCalledTimes(1)
+    expect(host.querySelector('.welcome-screen')).toBeNull()
+    expect(host.querySelector('#typora-sidebar')).not.toBeNull()
+    expect(host.querySelector('#file-library-search-input')).not.toBeNull()
+    expect(host.querySelector('.milkdown-editor')).not.toBeNull()
+    expect(openMarkdownFileInCurrentWindow).not.toHaveBeenCalled()
   })
 })

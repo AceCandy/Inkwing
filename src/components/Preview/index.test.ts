@@ -1,6 +1,9 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { simpleMarkdownToHTML } from './index'
+
+const previewCss = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
 
 describe('simpleMarkdownToHTML', () => {
   it('keeps fenced code blocks identifiable for Typora theme styles', () => {
@@ -49,5 +52,14 @@ describe('simpleMarkdownToHTML', () => {
     expect(html).toContain('<th>字段</th>')
     expect(html).toContain('</table>')
     expect(html).toContain('</figure>')
+  })
+
+  it('styles preview output with Typora variables instead of project theme tokens', () => {
+    expect(previewCss).not.toContain('--theme-')
+    expect(previewCss).not.toContain('Catppuccin')
+    expect(previewCss).toContain('background-color: var(--bg-color);')
+    expect(previewCss).toContain('font-family: var(--font-sans);')
+    expect(previewCss).toContain('color: var(--font-color);')
+    expect(previewCss).toContain('color: var(--LOGO-color);')
   })
 })

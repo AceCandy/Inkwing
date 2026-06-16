@@ -44,7 +44,7 @@ describe('rewriteCssAssetUrls', () => {
 })
 
 describe('extractTyporaShellVariables', () => {
-  it('maps known Typora shell variables into Inkwing shell variables', () => {
+  it('keeps known Typora shell variables under their original names', () => {
     const css = `
       :root {
         --bg-color: #faf9f5;
@@ -56,21 +56,16 @@ describe('extractTyporaShellVariables', () => {
 
     expect(extractTyporaShellVariables(css)).toEqual(
       expect.objectContaining({
-        '--bg-primary': '#faf9f5',
-        '--bg-secondary': '#faf9f5',
-        '--theme-editor-bg': '#faf9f5',
-        '--theme-preview-bg': '#faf9f5',
-        '--text-primary': '#141413',
-        '--theme-text-primary': '#141413',
-        '--border': '#1f1e1d',
-        '--theme-border': '#1f1e1d',
-        '--accent': '#D97757',
-        '--theme-accent': '#D97757',
+        '--bg-color': '#faf9f5',
+        '--font-color': '#141413',
+        '--border-color': '#1f1e1d',
+        '--LOGO-color': '#D97757',
       }),
     )
+    expect(extractTyporaShellVariables(css)).not.toHaveProperty('--bg-primary')
   })
 
-  it('maps Typora editor variables used by editor and preview containers', () => {
+  it('keeps Typora editor variables used by editor and preview containers', () => {
     const css = `
       :root {
         --bg-color: #262624;
@@ -92,16 +87,45 @@ describe('extractTyporaShellVariables', () => {
 
     expect(extractTyporaShellVariables(css)).toEqual(
       expect.objectContaining({
-        '--theme-editor-bg': '#262624',
-        '--theme-preview-bg': '#262624',
-        '--theme-code-bg': '#ffffff80',
-        '--theme-code-border': '#1f1e1d26',
-        '--theme-code-text': '#73726c',
-        '--theme-inline-code-bg': '#c2c0b60d',
-        '--theme-inline-code-text': '#fe8181',
-        '--theme-inline-code-border': '#dedcd126',
-        '--theme-font-family': '"Anthropic Serif Web Text", Georgia',
-        '--theme-font-family-mono': '"Anthropic Mono Variable", ui-monospace',
+        '--bg-color': '#262624',
+        '--hover-color': '#141413',
+        '--font-color': '#faf9f5',
+        '--sidebar-font-color': '#c2c0b6',
+        '--border-color': '#dedcd1',
+        '--pre-bg-color': '#ffffff80',
+        '--pre-border-color': '#1f1e1d26',
+        '--pre-inputfont-color': '#73726c',
+        '--code-bg-color': '#c2c0b60d',
+        '--code-font-color': '#fe8181',
+        '--code-border': '#dedcd126',
+        '--LOGO-color': '#D97757',
+        '--font-serif': '"Anthropic Serif Web Text", Georgia',
+        '--font-mono': '"Anthropic Mono Variable", ui-monospace',
+      }),
+    )
+    expect(extractTyporaShellVariables(css)).not.toHaveProperty('--theme-editor-bg')
+  })
+
+  it('extracts the Typora theme root line-height for runtime shell parity', () => {
+    const css = `
+      html,
+      :host {
+        line-height: 1.5;
+        tab-size: 4;
+      }
+
+      body {
+        line-height: inherit;
+      }
+
+      #write {
+        line-height: 1.75;
+      }
+    `
+
+    expect(extractTyporaShellVariables(css)).toEqual(
+      expect.objectContaining({
+        '--typora-line-height': '1.5',
       }),
     )
   })
@@ -181,11 +205,11 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('.typora-theme-scope .preview-content pre')
     expect(result).toContain('body.typora-theme-scope #write pre code')
     expect(result).toContain('.typora-theme-scope .preview-content pre code')
-    expect(result).toContain('var(--theme-code-bg)')
-    expect(result).toContain('var(--theme-code-border)')
-    expect(result).toContain('var(--theme-code-text)')
-    expect(result).toContain('var(--theme-inline-code-text)')
-    expect(result).not.toContain('var(--code-font-color)')
+    expect(result).toContain('var(--pre-bg-color)')
+    expect(result).toContain('var(--pre-border-color)')
+    expect(result).toContain('var(--pre-inputfont-color)')
+    expect(result).toContain('var(--code-font-color)')
+    expect(result).toContain('var(--code-bg-color)')
     expect(result).not.toContain('.typora-theme-scope .CodeMirror-lines')
   })
 
@@ -210,26 +234,25 @@ describe('adaptTyporaCss', () => {
     expect(result).toContain('.typora-theme-scope .preview-content blockquote > p')
     expect(result).toContain('body.typora-theme-scope #write hr')
     expect(result).toContain('.typora-theme-scope .preview-content hr')
-    expect(result).toContain('var(--theme-hr-color)')
+    expect(result).toContain('var(--hr-color)')
     expect(result).not.toContain('.typora-theme-scope .write ul')
     expect(result).not.toContain('.typora-theme-scope blockquote > p')
   })
 
-  it('appends only structural app compatibility rules after imported Typora CSS', () => {
+  it('does not append project-owned compatibility rules after imported Typora CSS', () => {
     const result = adaptTyporaCss('#write h1 { font-size: 2rem; }', {
       assetBasePath: '/app/themes/claude',
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline #file-library{display:none;}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar.active-tab-files #outline-content{display:none;}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar.active-tab-files #file-library{display:block;}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline.ty-on-search #file-library-search-result{display:none;}')
-    expect(result).toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline.ty-on-search #outline-content{height:100%!important;max-height:100%!important;}')
-    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.ty-on-search #file-library-search{display:block;}')
-    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.ty-on-search #file-library-search-panel{display:flex;}')
-    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline.ty-on-search #file-library-search{height:auto;')
+    expect(result).toContain('body.typora-theme-scope #write h1')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar-resizer{left:var(--sidebar-width, 245px);}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline #file-library{display:none;}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-files #outline-content{display:none;}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-files #file-library{display:block;}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar #file-library-search{display:none;}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline.ty-on-search #file-library-search-result{display:none;}')
+    expect(result).not.toContain('body.typora-theme-scope #typora-sidebar.active-tab-outline.ty-on-search #outline-content{height:100%!important;max-height:100%!important;}')
     expect(result).not.toContain('border:0.5px solid')
     expect(result).not.toContain('box-shadow:var(--box-shadow-userinput')
     expect(result).not.toContain('background-image:linear-gradient')
@@ -259,23 +282,15 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope .milkdown-editor')
-    expect(result).toContain('body.typora-theme-scope .preview-container')
-    expect(result).toContain(
-      'body.typora-theme-scope .milkdown-editor,\nbody.typora-theme-scope .preview-container{padding:0;',
-    )
-    expect(result).toContain(
-      'body.typora-theme-scope #write, .typora-theme-scope .preview-content{font-size:var(--typora-font-size, 17px);}',
-    )
-    expect(result.indexOf('font-size:var(--typora-font-size, 17px);')).toBeLessThan(
-      result.indexOf('max-width: 752px;'),
-    )
+    expect(result).not.toContain('body.typora-theme-scope .milkdown-editor')
+    expect(result).not.toContain('body.typora-theme-scope .preview-container')
+    expect(result).not.toContain('font-size:var(--typora-font-size, 17px);')
     expect(result).not.toContain('padding:var(--typora-surface-padding, 24px);')
     expect(result).toContain('body.typora-theme-scope #write')
-    expect(result).toContain('body.typora-theme-scope .preview-content')
+    expect(result).toContain('.typora-theme-scope .preview-content')
   })
 
-  it('resets local editor list marker accent so Typora content inherits text color', () => {
+  it('does not synthesize local editor list marker resets over Typora content', () => {
     const result = adaptTyporaCss('#write ul:not(.task-list) { list-style-type: disc; }', {
       assetBasePath: '/app/themes/claude',
       toAssetUrl,
@@ -286,9 +301,10 @@ describe('adaptTyporaCss', () => {
       '.typora-theme-scope .preview-content li::marker{color:currentColor;font-weight:inherit;}',
     ].join(', ')
 
-    expect(result).toContain(markerReset)
-    expect(result.indexOf(markerReset)).toBeLessThan(result.indexOf('list-style-type: disc;'))
+    expect(result).not.toContain(markerReset)
     expect(result).not.toContain('li::marker{color:var(--theme-accent')
+    expect(result).toContain('body.typora-theme-scope #write ul:not(.task-list)')
+    expect(result).toContain('.typora-theme-scope .preview-content ul:not(.task-list)')
   })
 
   it('does not synthesize theme-specific outline connector rules without theme CSS', () => {
@@ -314,9 +330,9 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result.match(/#outline-content li \.outline-label\{/g)).toHaveLength(1)
+    expect(result.match(/\.outline-content li \.outline-label\{/g)).toHaveLength(1)
     expect(result.match(/\.outline-item > \.outline-expander\{/g)).toHaveLength(1)
-    expect(result.match(/#outline-content li \.outline-item::before\{/g)).toHaveLength(1)
+    expect(result.match(/\.outline-content li \.outline-item::before\{/g)).toHaveLength(1)
     expect(result).not.toContain('max-width:calc(100% - 12px)')
     expect(result).not.toContain('font-weight:var(--sidebar-font-weight, 430)!important')
   })
@@ -334,11 +350,11 @@ describe('adaptTyporaCss', () => {
     })
 
     expect(result).toContain('body.typora-theme-scope #outline-content{')
-    expect(result).toContain('body.typora-theme-scope #outline-content li .outline-label{')
+    expect(result).toContain('body.typora-theme-scope .outline-content li .outline-label{')
     expect(result).toContain('font-family: var(--font-sans);')
-    expect(result).toContain('body.typora-theme-scope #outline-content li .outline-item::before{')
-    expect(result).toContain('border-left: 1px solid var(--accent);')
-    expect(result).toContain('body.typora-theme-scope #outline-content > li:first-of-type > .outline-item::before{')
+    expect(result).toContain('body.typora-theme-scope .outline-content li .outline-item::before{')
+    expect(result).toContain('border-left: 1px solid var(--LOGO-color);')
+    expect(result).toContain('body.typora-theme-scope .outline-content > li:first-of-type > .outline-item::before{')
     expect(result).toContain('.typora-theme-scope .outline-item-open > .outline-children::before{')
   })
 
@@ -356,7 +372,7 @@ describe('adaptTyporaCss', () => {
 
     expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar\{\s*border-radius: 15px;/)
     expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar:hover\{\s*box-shadow: var\(--box-shadow-userinput-hover\);/)
-    expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar input\{\s*color: var\(--text-secondary\);/)
+    expect(result).toMatch(/body\.typora-theme-scope #typora-sidebar input\{\s*color: var\(--sidebar-font-color\);/)
     expect(result).not.toMatch(/body\.typora-theme-scope \.sidebar\{/)
   })
 
@@ -390,7 +406,7 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toMatch(/body\.typora-theme-scope #outline-content\{\s*color: var\(--text-secondary\);/)
+    expect(result).toMatch(/body\.typora-theme-scope #outline-content\{\s*color: var\(--sidebar-font-color\);/)
     expect(result).toMatch(/body\.typora-theme-scope #outline-content \.outline-label\{\s*font-size: 14px;/)
     expect(result).not.toContain('.typora-theme-scope .outline-content')
   })
@@ -450,6 +466,7 @@ describe('adaptTyporaCss', () => {
     const css = [
       '.mac-os.active-tab-outline #sidebar-content { bottom: 15px !important; }',
       '.os-windows .ty-show-search #sidebar-content .sidebar-content-content { margin-top: -7px; }',
+      '.no-animation .ty-show-outline-filter #file-library-search { transition: none; }',
     ].join('\n')
 
     const result = adaptTyporaCss(css, {
@@ -459,8 +476,10 @@ describe('adaptTyporaCss', () => {
 
     expect(result).toContain('body.typora-theme-scope.mac-os.active-tab-outline #sidebar-content{')
     expect(result).toContain('body.typora-theme-scope.os-windows #typora-sidebar.ty-show-search #sidebar-content .sidebar-content-content{')
+    expect(result).toContain('body.typora-theme-scope.no-animation #typora-sidebar.ty-show-outline-filter #file-library-search{')
     expect(result).not.toContain('.typora-theme-scope .mac-os.active-tab-outline')
     expect(result).not.toContain('.typora-theme-scope .os-windows .ty-show-search')
+    expect(result).not.toContain('.typora-theme-scope .no-animation .ty-show-outline-filter')
   })
 
   it('does not synthesize outline search field geometry over imported themes', () => {
@@ -507,6 +526,7 @@ describe('adaptTyporaCss', () => {
     const css = [
       '/* Implementation detail */',
       '.no-collapse-outline .outline-content li ul { margin-left: 21px; }',
+      '.no-collapse-outline .outline-children > li:first-child > .outline-item::before { top: -8px; }',
       '/* Implementation detail */',
       '.mac-os #typora-sidebar, .mac-seamless-mode #typora-sidebar { margin-top: 43px; }',
       '/* Implementation detail */',
@@ -518,10 +538,13 @@ describe('adaptTyporaCss', () => {
       toAssetUrl,
     })
 
-    expect(result).toContain('body.typora-theme-scope.no-collapse-outline #outline-content li ul{')
+    expect(result).toContain('body.typora-theme-scope.no-collapse-outline .outline-content li ul{')
+    expect(result).toContain('body.typora-theme-scope.no-collapse-outline .outline-children > li:first-child > .outline-item::before{')
     expect(result).toContain('body.typora-theme-scope.mac-os #typora-sidebar')
     expect(result).toContain('body.typora-theme-scope.mac-seamless-mode #typora-sidebar')
     expect(result).toContain('body.typora-theme-scope.ty-on-outline-filter #outline-content .outline-item::before{')
+    expect(result).not.toContain('body.typora-theme-scope #outline-content li ul')
+    expect(result).not.toContain('body.typora-theme-scope #outline-content li .outline-item::before')
     expect(result).not.toContain('.no-collapse-outline body.typora-theme-scope')
     expect(result).not.toContain('.mac-os body.typora-theme-scope')
     expect(result).not.toContain('.ty-on-outline-filter body.typora-theme-scope')

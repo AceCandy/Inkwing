@@ -1,13 +1,18 @@
-import { convertFileSrc } from '@tauri-apps/api/core'
+import { convertFileSrc, isTauri } from '@tauri-apps/api/core'
 
 import { adaptTyporaCss, extractTyporaShellVariables } from './cssAdapter'
 import { readTyporaThemeCss } from './api'
 import type { TyporaThemeOption } from './types'
+import typoraBaseCss from './base.css.txt?raw'
+import typoraBaseControlCss from './base-control.css.txt?raw'
+import typoraShellCss from './shell.css.txt?raw'
 
 const ACTIVE_TYPORA_THEME_STYLE_ID = 'inkwing-active-typora-theme'
 const ACTIVE_TYPORA_SHELL_STYLE_ID = 'inkwing-active-typora-shell-theme'
 const TYPORA_BODY_CLASS = 'typora-theme-scope'
+const TYPORA_APPLYING_CLASS = 'typora-theme-applying'
 const TYPORA_BODY_STATE_CLASSES = [
+  TYPORA_APPLYING_CLASS,
   'typora-node',
   'no-collapse-outline',
   'no-animation',
@@ -25,6 +30,9 @@ const TYPORA_BODY_STATE_CLASSES = [
 ]
 const TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH = '245px'
 const TYPORA_RUNTIME_DEFAULT_FONT_SIZE = '17px'
+const TYPORA_RUNTIME_DEFAULT_LINE_HEIGHT = '1.42857143'
+const TYPORA_BASE_VARIABLES = extractTyporaShellVariables(typoraBaseCss)
+const TYPORA_BASE_CONTROL_VARIABLES = extractTyporaShellVariables(typoraBaseControlCss)
 
 function normalizeFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/')
@@ -43,6 +51,7 @@ function getOrCreateStyleElement(id: string): HTMLStyleElement {
   const style = document.createElement('style')
   style.id = id
   document.head.appendChild(style)
+
   return style
 }
 
@@ -71,11 +80,22 @@ function buildShellThemeCss(variables: Record<string, string>): string {
     return ''
   }
 
+  const adaptedShellCss = adaptTyporaCss(typoraShellCss, {
+    assetBasePath: '',
+    toAssetUrl: normalizeFilePath,
+  })
+
   return [
+    `body.${TYPORA_APPLYING_CLASS} #typora-sidebar { transition: none !important; }`,
+    `:root {`,
+    declarations,
+    `}`,
     `body.${TYPORA_BODY_CLASS} {`,
     declarations,
-    `font-size: var(--typora-font-size, ${TYPORA_RUNTIME_DEFAULT_FONT_SIZE});`,
+    `font-size: var(--typora-font-size);`,
+    `line-height: var(--typora-line-height);`,
     '}',
+    adaptedShellCss,
   ].join(' ')
 }
 
@@ -86,9 +106,12 @@ export function getTyporaRuntimeShellVariables(
   const isMac = getTyporaPlatformBodyClass(platform, userAgent) === 'mac-os'
 
   return {
+    ...TYPORA_BASE_VARIABLES,
+    ...TYPORA_BASE_CONTROL_VARIABLES,
     '--sidebar-width': TYPORA_RUNTIME_DEFAULT_SIDEBAR_WIDTH,
     '--title-bar-height': isMac ? '28px' : '20px',
     '--typora-font-size': TYPORA_RUNTIME_DEFAULT_FONT_SIZE,
+    '--typora-line-height': TYPORA_RUNTIME_DEFAULT_LINE_HEIGHT,
   }
 }
 
@@ -112,9 +135,8 @@ export function getTyporaRuntimeBodyClasses(
   userAgent = globalThis.navigator?.userAgent ?? '',
 ): string[] {
   const platformClass = getTyporaPlatformBodyClass(platform, userAgent)
-  const classes = [TYPORA_BODY_CLASS, 'typora-node']
+  const classes = [TYPORA_BODY_CLASS, 'typora-node', 'no-collapse-outline']
 
-  // 当前大纲支持折叠，不能默认挂 no-collapse-outline，否则 Claude 等主题会走扁平大纲样式分支。
   if (platformClass === 'mac-os') {
     classes.push('allow-file-tree-scroll', 'html-for-mac', 'no-animation', 'mac-os-11', 'mac-os', 'mac-seamless-mode')
   } else if (platformClass) {
@@ -133,6 +155,25 @@ export function clearTyporaTheme() {
   document.getElementById(ACTIVE_TYPORA_SHELL_STYLE_ID)?.remove()
 }
 
+function clearTyporaApplyingClassAfterPaint(body: HTMLElement) {
+  let cleared = false
+  const clear = () => {
+    if (cleared) {
+      return
+    }
+    cleared = true
+    body.classList.remove(TYPORA_APPLYING_CLASS)
+  }
+
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(clear)
+    })
+  }
+
+  window.setTimeout(clear, 120)
+}
+
 export async function applyTyporaTheme(theme: TyporaThemeOption) {
   const body = document.body
   if (!body) {
@@ -144,7 +185,7 @@ export async function applyTyporaTheme(theme: TyporaThemeOption) {
   const assetBasePath = basePath || theme.basePath
   const adaptedCss = adaptTyporaCss(css, {
     assetBasePath,
-    toAssetUrl: (path) => convertFileSrc(normalizeFilePath(path)),
+    toAssetUrl: resolveThemeAssetUrl,
   })
   const shellVariables = extractTyporaShellVariables(css)
   const shellThemeCss = buildShellThemeCss(shellVariables)
@@ -152,11 +193,27 @@ export async function applyTyporaTheme(theme: TyporaThemeOption) {
   try {
     // 所有内容都准备好后，再清空旧状态并应用新主题。
     clearTyporaTheme()
-    body.classList.add(...getTyporaRuntimeBodyClasses())
-    setStyleContent(ACTIVE_TYPORA_THEME_STYLE_ID, adaptedCss)
+    body.classList.add(TYPORA_APPLYING_CLASS)
     setStyleContent(ACTIVE_TYPORA_SHELL_STYLE_ID, shellThemeCss)
+    setStyleContent(ACTIVE_TYPORA_THEME_STYLE_ID, adaptedCss)
+    body.classList.add(...getTyporaRuntimeBodyClasses())
+    clearTyporaApplyingClassAfterPaint(body)
   } catch (error) {
     clearTyporaTheme()
     throw error
   }
+}
+
+function resolveThemeAssetUrl(path: string): string {
+  const normalizedPath = normalizeFilePath(path)
+
+  try {
+    if (isTauri()) {
+      return convertFileSrc(normalizedPath)
+    }
+  } catch {
+    // 非 Tauri 的 Safari/Vite 调试态没有 asset protocol，直接使用开发服务器可访问的主题路径。
+  }
+
+  return normalizedPath
 }

@@ -1,0 +1,1 @@
+:root{--bg-color:#ffffff;--text-color:#333333;--select-text-bg-color:#B5D6FC;--select-text-font-color:auto;--monospace:"Lucida Console",Consolas,"Courier",monospace;--title-bar-height:20px}.mac-os-11{--title-bar-height:28px}

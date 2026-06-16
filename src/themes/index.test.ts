@@ -1,13 +1,15 @@
 import { readFileSync } from 'node:fs'
 
-import { invoke } from '@tauri-apps/api/core'
-import { describe, expect, it, vi } from 'vitest'
+import { invoke, isTauri } from '@tauri-apps/api/core'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getAllThemes, getThemeOption, refreshExternalThemes } from './index'
+import { readTyporaThemeCss } from './typora/api'
 
 vi.mock('@tauri-apps/api/core', () => ({
   convertFileSrc: vi.fn((path: string) => `asset://${path}`),
   invoke: vi.fn(),
+  isTauri: vi.fn(() => true),
 }))
 
 function readBundledThemeCss(themeDir: string): string {
@@ -15,6 +17,16 @@ function readBundledThemeCss(themeDir: string): string {
 }
 
 describe('theme registry', () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset()
+    vi.mocked(isTauri).mockReset()
+    vi.mocked(isTauri).mockReturnValue(true)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('ships built-in themes as Typora-compatible CSS files', () => {
     const mochaCss = readBundledThemeCss('catppuccin-mocha')
     const latteCss = readBundledThemeCss('catppuccin-latte')
@@ -24,9 +36,35 @@ describe('theme registry', () => {
       expect(css).toContain('#typora-sidebar')
       expect(css).toContain('.outline-content')
       expect(css).toContain('.outline-item')
+      expect(css).not.toContain('#file-library-search-input')
       expect(css).not.toContain('--theme-editor-bg')
       expect(css).not.toContain('--theme-preview-bg')
     }
+  })
+
+  it('uses bundled Typora CSS packages when opened in Safari without Tauri IPC', async () => {
+    vi.mocked(isTauri).mockReturnValue(false)
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('/* bundled Typora css */\n#write { color: var(--font-color); }'),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const themes = await refreshExternalThemes()
+    const css = await readTyporaThemeCss('claude-typora-theme-v1-0-0', 'claude.css')
+
+    expect(invoke).not.toHaveBeenCalled()
+    expect(themes.map((theme) => theme.id)).toEqual([
+      'typora:claude-typora-theme-v1-0-0:claude',
+      'typora:claude-typora-theme-v1-0-0:claude-dark',
+      'typora:catppuccin-mocha:theme',
+      'typora:catppuccin-latte:theme',
+    ])
+    expect(fetchMock).toHaveBeenCalledWith('/third-theme/claude-typora-theme-v1.0.0/claude.css?raw')
+    expect(css).toEqual({
+      css: '/* bundled Typora css */\n#write { color: var(--font-color); }',
+      basePath: '/third-theme/claude-typora-theme-v1.0.0',
+    })
   })
 
   it('uses Typora CSS packages as the only selectable theme source', async () => {
@@ -148,19 +186,19 @@ describe('theme registry', () => {
     expect(themes.map((theme) => theme.cssFile)).toEqual(['claude.css'])
   })
 
-  it('falls back to the first Typora CSS theme when a legacy theme id is requested', async () => {
+  it('migrates legacy theme ids to the Claude Typora CSS target', async () => {
     vi.mocked(invoke).mockResolvedValueOnce([
       {
-        id: 'catppuccin-mocha',
-        name: 'Catppuccin Mocha',
+        id: 'claude-typora-theme-v1-0-0',
+        name: 'Claude Typora Theme',
         type: 'typora',
-        basePath: '/themes/catppuccin-mocha',
+        basePath: '/themes/claude',
         importedAt: 'bundled',
         variants: [
           {
-            id: 'theme',
-            name: 'Theme',
-            cssFile: 'theme.css',
+            id: 'claude',
+            name: 'Claude',
+            cssFile: 'claude.css',
           },
         ],
       },
@@ -171,8 +209,22 @@ describe('theme registry', () => {
     expect(getThemeOption('default')).toEqual(
       expect.objectContaining({
         type: 'typora',
-        id: 'typora:catppuccin-mocha:theme',
+        id: 'typora:claude-typora-theme-v1-0-0:claude',
       }),
     )
+    expect(getThemeOption('light')).toEqual(
+      expect.objectContaining({
+        type: 'typora',
+        id: 'typora:claude-typora-theme-v1-0-0:claude',
+      }),
+    )
+  })
+
+  it('raises an explicit error when a requested Typora theme is unavailable', async () => {
+    vi.mocked(invoke).mockResolvedValueOnce([])
+
+    await refreshExternalThemes()
+
+    expect(() => getThemeOption('typora:missing:theme')).toThrow('Typora 主题不存在: typora:missing:theme')
   })
 })
