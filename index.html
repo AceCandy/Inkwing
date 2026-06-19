@@ -5,6 +5,12 @@
     <link rel="icon" type="image/png" href="/logo-v2.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inkwing</title>
+    <!-- Typora 实物图标 CSS（逐字复制自 TypeMark/style，放 public 下不经 Vite 处理，
+         保留 content 的 "\e900" 转义使图标正常渲染）。顺序对应 Typora index.html：
+         font-awesome(经 main.tsx import) → ionicons → typora-icon → typora-file-icon。 -->
+    <link rel="stylesheet" href="/typora-control/ionicons-2.0.1/css/ionicons.min.css" />
+    <link rel="stylesheet" href="/typora-control/typora-icon/style.css" />
+    <link rel="stylesheet" href="/typora-control/typora-file-icon/style.css" />
   </head>
   <body>
     <div id="root"></div>
