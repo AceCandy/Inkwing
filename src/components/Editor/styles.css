@@ -7,35 +7,17 @@
   color: inherit;
 }
 
+/* 宿主容器只负责把 Typora #write 撑满 <content> 区域；宽度由 base.css 的
+   #write{width:inherit;margin:0 auto} + 主题的 max-width 决定居中盒模型。
+   不再给 #write 套项目自造的 width/padding/transition——这些会覆盖主题
+   （如 claude.css 的 #write{width:100%;max-width:752px;padding:2.25rem...}），
+   导致正文盒模型与 Typora 不一致。 */
 body.typora-theme-scope .typora-write-host,
 body.typora-theme-scope .typora-write-host > div,
 body.typora-theme-scope .typora-write-host .milkdown {
   width: 100%;
   min-height: 100%;
-  height: 100%;
   background-color: inherit;
-}
-
-body.typora-theme-scope #write {
-  position: relative;
-  min-height: 100%;
-  top: 0;
-  margin: 0 auto;
-  height: auto;
-  width: inherit;
-  word-break: normal;
-  word-wrap: break-word;
-  white-space: normal;
-  background-color: inherit;
-  overflow-x: visible;
-  -webkit-user-drag: none;
-  padding-bottom: 70px;
-  transition: .4s padding-top ease-out;
-}
-
-body.typora-theme-scope.typora-node #write {
-  min-height: 100%;
-  top: 0;
 }
 
 body.typora-theme-scope #write::after {
@@ -43,24 +25,4 @@ body.typora-theme-scope #write::after {
   font-size: 0;
   display: block;
   height: 0;
-}
-
-body.typora-theme-scope #write h1,
-body.typora-theme-scope #write h2,
-body.typora-theme-scope #write h3,
-body.typora-theme-scope #write h4,
-body.typora-theme-scope #write h5,
-body.typora-theme-scope #write h6,
-body.typora-theme-scope #write p,
-body.typora-theme-scope #write pre {
-  width: inherit;
-  position: relative;
-}
-
-body.typora-theme-scope #write h1,
-body.typora-theme-scope #write h2,
-body.typora-theme-scope #write h3,
-body.typora-theme-scope #write h4,
-body.typora-theme-scope #write h5 {
-  white-space: pre-wrap;
 }

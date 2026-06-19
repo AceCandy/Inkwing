@@ -96,7 +96,7 @@ export const SettingsModal: React.FC = () => {
   }
 
   return (
-    <div className="settings-overlay" onClick={handleOverlayClick}>
+    <div className="settings-overlay inkwing-chrome" onClick={handleOverlayClick}>
       <div className="settings-modal">
         <div className="settings-header">
           <div className="settings-title-container">

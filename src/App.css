@@ -1,36 +1,13 @@
-.app {
-  --sidebar-width: 245px;
-  --title-bar-height: 28px;
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
+/* 方案 A：Typora 原生骨架直供后，body 用 Typora 原生 class（无 .typora-theme-scope），
+   #typora-sidebar / #typora-sidebar-resizer / <content> 的布局完全由 Typora
+   base-control.css / window.css 提供。本文件只保留 Typora 没有的环境补偿：
+   sidebar-resizer 的拖拽热区、mac-titlebar-overlay（Tauri 无 Cocoa bridge）、
+   content 内 milkdown-editor 撑满。 */
 
-body.typora-theme-scope .app,
-body.typora-theme-scope .app-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-.app-body {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.sidebar-resizer {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: var(--sidebar-width);
-  z-index: 99;
-  width: 6px;
-  height: auto;
-  margin-left: -2px;
+/* sidebar-resizer：骨架已注入 #typora-sidebar-resizer（Typora 原生 id）。
+   Typora window.css 给它定位（left:var(--sidebar-width)），但拖拽热区宽度、
+   hover/dragging 的视觉态由本项目接管（Typora 用 native resize，无这些态）。 */
+#typora-sidebar-resizer {
   cursor: col-resize;
   display: flex;
   justify-content: center;
@@ -45,14 +22,14 @@ body.typora-theme-scope .app-body {
   transition: background-color 0.15s ease;
 }
 
-.sidebar-resizer.dragging {
+#typora-sidebar-resizer.dragging {
   left: 0;
   right: 0;
   width: 100%;
   margin-left: 0;
 }
 
-.sidebar-resizer.dragging .typora-sidebar-resizer-bar {
+#typora-sidebar-resizer.dragging .typora-sidebar-resizer-bar {
   position: absolute;
   left: var(--sidebar-width);
   width: 8px;
@@ -60,47 +37,58 @@ body.typora-theme-scope .app-body {
   border-right: 2px dashed var(--primary-color);
 }
 
-.sidebar-resizer:hover .typora-sidebar-resizer-bar,
-.sidebar-resizer:focus-visible .typora-sidebar-resizer-bar,
-.sidebar-resizer.dragging .typora-sidebar-resizer-bar {
+#typora-sidebar-resizer:hover .typora-sidebar-resizer-bar,
+#typora-sidebar-resizer:focus-visible .typora-sidebar-resizer-bar,
+#typora-sidebar-resizer.dragging .typora-sidebar-resizer-bar {
   background-color: var(--primary-color);
   opacity: 0.8;
 }
 
-.app-body > titlebar {
-  position: absolute;
+/* macOS seamless 形态顶部条：Typora 在 macOS 用原生 Cocoa 标题栏渲染文件名/字数
+   （bridge.callHandler），左上系统红绿灯由 macOS 渲染。本项目用 Tauri，无 Cocoa bridge，
+   只在 28px 标题栏区域自渲染轻量覆盖层。正文 <content> 的 top 由 Typora window.css 提供。
+   data-tauri-drag-region 让整条可拖拽移动窗口（Tauri 等价 -webkit-app-region:drag）。 */
+.mac-titlebar-overlay {
+  position: fixed;
   top: 0;
-  right: 0;
-  left: var(--sidebar-width);
-  height: var(--title-bar-height);
-  display: block;
-  overflow: visible;
-  background-color: inherit;
-  z-index: 2;
-  user-select: none;
-}
-
-.app-body > content {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: var(--sidebar-width);
-  height: auto;
-  width: inherit;
-  margin-top: var(--title-bar-height);
-  display: block;
-  overflow-y: auto;
-  overflow-x: auto;
-  background-color: inherit;
-}
-
-.app-body.without-sidebar > titlebar,
-.app-body.without-sidebar > content {
   left: 0;
+  right: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 901;
+  pointer-events: none;
+  background-color: inherit;
+  font-size: 12px;
+  color: var(--text-color, #333);
 }
 
-.app-body > content > .milkdown-editor {
+.mac-titlebar-filename {
+  opacity: 0.7;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* 修改态：文件名后加 "*"，对齐 Typora 的 .title-modified.title-text:after{content:"*"} */
+.mac-titlebar-filename-modified::after {
+  content: "*";
+  margin-left: 2px;
+}
+
+.mac-titlebar-wordcount {
+  position: absolute;
+  right: 12px;
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+/* content 内的 Milkdown 编辑器撑满。Typora window.css 给 <content> 定位，
+   这里只让 milkdown-editor 容器填满它。 */
+content > .milkdown-editor {
   width: 100%;
   height: 100%;
   min-height: 100%;

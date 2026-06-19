@@ -6,18 +6,19 @@
   box-sizing: border-box;
 }
 
+/* body 的布局交给 Typora base.css / window.css（原样注入）。
+   这里只设背景色兜底，不设 overflow（Typora 自管）。 */
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  line-height: var(--typora-line-height);
-  overflow: hidden;
 }
 
+/* #root 不强制尺寸/布局——Typora 把窗口布局放在 body 直接子元素
+   （#typora-sidebar / <content> / #typora-sidebar-resizer）上，这些现在通过
+   骨架注入到 body，#root 只承载项目自造的 chrome（titlebar overlay 等），
+   不应影响 Typora 布局。 */
 #root {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  position: static;
 }
 
 /* 滚动条样式 */

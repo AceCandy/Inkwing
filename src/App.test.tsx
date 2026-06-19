@@ -4,9 +4,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import * as AppModule from './App'
+import { TYPORA_SHELL_HTML } from './components/TyporaShell/skeletonHtml'
 
 const appCss = readFileSync(new URL('./App.css', import.meta.url), 'utf8')
 const mainTsx = readFileSync(new URL('./main.tsx', import.meta.url), 'utf8')
+const indexHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
@@ -99,10 +101,10 @@ describe('App sidebar resizing', () => {
       AppModule as { getInitialSidebarWidth?: (storage: Storage) => number }
     ).getInitialSidebarWidth
     const storage = {
-      getItem: vi.fn(() => '270'),
+      getItem: vi.fn(() => '300'),
     } as unknown as Storage
 
-    expect(getInitialSidebarWidth?.(storage)).toBe(270)
+    expect(getInitialSidebarWidth?.(storage)).toBe(300)
   })
 
   it('only clamps stored sidebar widths to the draggable range', () => {
@@ -117,99 +119,100 @@ describe('App sidebar resizing', () => {
   })
 
   it('loads Typora-compatible icon fonts for the sidebar shell', () => {
+    // font-awesome 经 main.tsx import；Typora 实物图标 CSS（ionicons/typora-icon/
+    // typora-file-icon）逐字复制自 TypeMark/style，放 public 下经 index.html 全局 link。
     expect(mainTsx).toContain("import 'font-awesome/css/font-awesome.min.css'")
-    expect(mainTsx).toContain("import './styles/typora-control-icons.css'")
+    expect(indexHtml).toContain('/typora-control/ionicons-2.0.1/css/ionicons.min.css')
+    expect(indexHtml).toContain('/typora-control/typora-icon/style.css')
+    expect(indexHtml).toContain('/typora-control/typora-file-icon/style.css')
   })
 
-  it('renders a Typora-compatible sidebar resizer with width variables', () => {
-    const html = renderToStaticMarkup(<AppModule.default />)
-
-    expect(html).not.toContain('class="sidebar-layout"')
-    expect(html).toContain('--sidebar-width:245px')
-    expect(html).toContain('id="typora-sidebar-resizer"')
-    expect(html).toContain('class="typora-sidebar-resizer-bar"')
-    expect(html).toContain('role="separator"')
-    expect(html).toContain('aria-valuemin="180"')
-    expect(html).toContain('aria-valuemax="520"')
-    expect(html).toContain('aria-valuenow="245"')
+  it('mounts the Typora skeleton in main.tsx before React render', () => {
+    // 方案 A：骨架由 main.tsx 在 React render 前注入 document.body。
+    expect(mainTsx).toContain('mountTyporaSkeleton')
   })
 
-  it('renders Typora shell classes and outline hierarchy classes', () => {
+  it('skeleton HTML contains the Typora-native sidebar resizer (not rendered by App)', () => {
+    // resizer 的 DOM 在骨架里（Typora 原生 id），App 只通过 SidebarResizerBridge 绑定事件。
+    expect(TYPORA_SHELL_HTML).toContain('id="typora-sidebar-resizer"')
+    expect(TYPORA_SHELL_HTML).toContain('class="typora-sidebar-resizer-bar"')
+    // App 渲染的 HTML 不应重复出现 resizer 的 DOM（只通过事件桥接）。
     const html = renderToStaticMarkup(<AppModule.default />)
-
-    expect(html).toContain('id="typora-sidebar"')
-    expect(html).toContain('class="stopselect dropmenu sidebar-menu open use-file-tree-style active-tab-outline"')
-    expect(html).toContain('data-sidebar-tab="outline"')
-    expect(html).toContain('id="toc-dropmenu"')
-    expect(html).toContain('class="info-panel-tab-wrapper ty-tab-wrapper"')
-    expect(html).toContain('id="sidepanel-segmented-input-outline"')
-    expect(html).toContain('id="sidepanel-segmented-input-outline">Outline</div>')
-    expect(html).not.toContain('sidebar-tab-title')
-    expect(html).toContain('id="switch-sidebar-icon"')
-    expect(html).toContain('Switch to File List view')
-    expect(html).toContain('id="sidebar-search-btn"')
-    expect(html).toContain('id="ty-sidebar-footer"')
-    expect(html).toContain('id="reveal-folder-from-sidebar-menu"')
-    expect(html).toContain('class="outline-content sidebar-content-content"')
-    expect(html).toContain('data-after-content="Outline is Empty."')
-    expect(html).toContain('outline-item-wrapper outline-h1 outline-item-open')
-    expect(html).toContain('outline-item-wrapper outline-h2')
-    expect(html).not.toContain('outline-item-active')
-    expect(html).not.toContain('outline-label outline-active')
-    expect(html).not.toContain('outline-arrow-container')
-    expect(html).not.toContain('outline-text')
+    expect(html).not.toContain('id="typora-sidebar-resizer"')
   })
 
-  it('renders empty Typora titlebar and unclassed content landmarks', () => {
+  it('skeleton HTML contains Typora-native sidebar shell (macOS segmented tab form)', () => {
+    // sidebar 骨架不在 App 的 React 树里（在 body 注入的骨架里），故测骨架 HTML 字符串。
+    expect(TYPORA_SHELL_HTML).toContain('id="typora-sidebar"')
+    expect(TYPORA_SHELL_HTML).toContain('class="stopselect dropmenu sidebar-menu"')
+    expect(TYPORA_SHELL_HTML).toContain('id="toc-dropmenu"')
+    expect(TYPORA_SHELL_HTML).toContain('class="info-panel-tab-wrapper ty-tab-wrapper"')
+    expect(TYPORA_SHELL_HTML).toContain('id="sidepanel-segmented-input-outline"')
+    expect(TYPORA_SHELL_HTML).toContain('id="sidepanel-segmented-input-outline" data-localize="Outline"')
+    expect(TYPORA_SHELL_HTML).toContain('id="switch-sidebar-icon"')
+    expect(TYPORA_SHELL_HTML).toContain('id="sidebar-search-btn"')
+    expect(TYPORA_SHELL_HTML).toContain('id="ty-sidebar-footer"')
+    expect(TYPORA_SHELL_HTML).toContain('id="reveal-folder-from-sidebar-menu"')
+    expect(TYPORA_SHELL_HTML).toContain('class="outline-content sidebar-content-content"')
+    expect(TYPORA_SHELL_HTML).toContain('data-after-content="Outline is Empty."')
+  })
+
+  it('renders macOS seamless titlebar overlay with centered filename and right word count', () => {
     const html = renderToStaticMarkup(<AppModule.default />)
 
-    expect(html).toContain('<titlebar data-tauri-drag-region="true"></titlebar>')
-    expect(html).toContain('<content><div class="milkdown-editor"></div></content>')
+    // macOS 形态：Typora 用原生 Cocoa 标题栏渲染文件名/字数，本项目用 Tauri 无 Cocoa bridge，
+    // 自渲染轻量覆盖层（带 .inkwing-chrome 隔离 Typora reset）。
+    expect(html).toContain('mac-titlebar-overlay')
+    expect(html).toContain('inkwing-chrome')
+    expect(html).toContain('data-tauri-drag-region="true"')
+    expect(html).toContain('class="mac-titlebar-filename')
+    expect(html).toContain('>demo.md<')
+    expect(html).toContain('class="mac-titlebar-wordcount"')
+    expect(html).toContain('Words')
+    // 不渲染 Electron/unibody 形态的 #top-titlebar / traffic lights / footer.ty-footer。
     expect(html).not.toContain('id="top-titlebar"')
-    expect(html).not.toContain('class="editor-header-bar')
-    expect(html).not.toContain('data-typora-node="titlebar"')
-    expect(html).not.toContain('id="title-text"')
-    expect(html).not.toContain('class="header-filename-text title-text"')
-    expect(html).not.toContain('class="header-file-icon ty-file-icon ty-fi-markdown"')
-    expect(html).not.toContain('class="header-title-caret fa fa-caret-down"')
-    expect(html).not.toContain('class="typora-content-shell"')
-    expect(html).not.toContain('data-typora-node="content"')
+    expect(html).not.toContain('id="w-traffic-lights"')
+    expect(html).not.toContain('id="w-menu-btn"')
+    expect(html).not.toContain('class="stopselect ty-footer"')
+    expect(html).not.toContain('id="footer-word-count"')
+    expect(html).not.toContain('id="outline-btn"')
   })
 
-  it('does not render project-owned titlebar statistics over Typora shell', () => {
+  it('renders content with Milkdown editor (Typora <content> custom element)', () => {
     const html = renderToStaticMarkup(<AppModule.default />)
 
-    expect(html).not.toContain('class="header-stat-container"')
-    expect(html).not.toContain('选择统计指标')
-    expect(html).not.toContain('<span>1 分钟</span>')
+    // 方案 A：正文用 Typora 的 <content> 自定义元素，window.css 给它定位。
+    expect(html).toContain('<content>')
+    expect(html).toContain('class="milkdown-editor"')
   })
 
-  it('styles the main shell with Typora-compatible geometry', () => {
-    expect(appCss).toMatch(/\.app\s*\{[\s\S]*--title-bar-height: 28px;/)
-    expect(appCss).toMatch(/\.app-body > titlebar\s*\{[\s\S]*position: absolute;[\s\S]*left: var\(--sidebar-width\);[\s\S]*height: var\(--title-bar-height\);[\s\S]*display: block;/)
-    expect(appCss).toMatch(/\.app-body > content\s*\{[\s\S]*position: absolute;[\s\S]*top: 0;[\s\S]*left: var\(--sidebar-width\);[\s\S]*width: inherit;[\s\S]*margin-top: var\(--title-bar-height\);[\s\S]*overflow-y: auto;/)
-    expect(appCss).not.toMatch(/\.app-body > content\s*\{[\s\S]*width: auto;/)
-    expect(appCss).not.toContain('.editor-header-bar')
-    expect(appCss).not.toContain('.typora-content-shell')
-    expect(appCss).toMatch(/\.sidebar-resizer\s*\{[\s\S]*width: 6px;[\s\S]*margin-left: -2px;/)
+  it('App.css defers sidebar/layout to Typora window.css (no project-owned shell)', () => {
+    // 方案 A：#typora-sidebar / #typora-sidebar-resizer / <content> 的布局完全由
+    // Typora base-control.css / window.css 提供。App.css 只保留 resizer 拖拽热区、
+    // mac-titlebar-overlay、content 内 milkdown-editor 撑满。
+    expect(appCss).not.toContain('.app {')
+    expect(appCss).not.toContain('.app-body')
+    // resizer 规则用 Typora 原生 id（#typora-sidebar-resizer），不再用项目别名 .sidebar-resizer。
+    expect(appCss).toMatch(/#typora-sidebar-resizer\s*\{/)
+    expect(appCss).not.toMatch(/\.sidebar-resizer\s*\{/)
+    // macOS seamless 形态：自渲染 .mac-titlebar-overlay（文件名居中 + 字数右上）。
+    expect(appCss).toMatch(/\.mac-titlebar-overlay\s*\{[^}]*position:\s*fixed/)
+    expect(appCss).toMatch(/\.mac-titlebar-filename\s*\{[^}]*opacity:\s*0\.7/)
+    expect(appCss).toMatch(/\.mac-titlebar-wordcount\s*\{[^}]*right:\s*12px/)
+    // content 内 milkdown-editor 撑满。
+    expect(appCss).toMatch(/content > \.milkdown-editor\s*\{/)
   })
 
   it('uses Typora theme variables instead of project theme tokens for app chrome', () => {
     expect(appCss).not.toContain('var(--accent')
-    expect(appCss).not.toContain('var(--accent-hover')
     expect(appCss).not.toContain('var(--bg-primary')
     expect(appCss).not.toContain('var(--bg-surface')
     expect(appCss).not.toContain('var(--text-primary')
-    expect(appCss).not.toContain('var(--text-secondary')
-    expect(appCss).not.toContain('var(--border)')
     expect(appCss).toContain('background-color: var(--primary-color);')
-    expect(appCss).toContain('color: var(--text-color);')
+    expect(appCss).toContain('color: var(--text-color, #333);')
   })
 
   it('does not wrap the Typora sidebar in a project-owned visual slot', () => {
-    const html = renderToStaticMarkup(<AppModule.default />)
-
-    expect(html).not.toContain('class="sidebar-layout"')
     expect(appCss).not.toContain('.sidebar-layout')
     expect(appCss).not.toMatch(/#typora-sidebar\s*\{[^}]*width:\s*245px/)
   })

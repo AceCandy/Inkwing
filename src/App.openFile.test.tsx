@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
 import { openMarkdownFileInCurrentWindow } from './utils/openMarkdownFile'
+import { mountTyporaSkeleton, unmountTyporaSkeleton } from './components/TyporaShell/mountSkeleton'
 
 const editorState = vi.hoisted(() => ({
   filePath: null as string | null,
@@ -89,6 +90,9 @@ describe('App open file entry points', () => {
     editorState.filePath = null
     vi.mocked(openMarkdownFileInCurrentWindow).mockReset()
     vi.mocked(openMarkdownFileInCurrentWindow).mockResolvedValue(undefined)
+    // 方案 A：Typora 骨架注入 document.body（#root/host 之外），App 内 TyporaShell
+    // 通过 portal 把内容塞进骨架节点。测试需先注入骨架。
+    mountTyporaSkeleton()
     host = document.createElement('div')
     document.body.appendChild(host)
     root = createRoot(host)
@@ -97,6 +101,7 @@ describe('App open file entry points', () => {
   afterEach(() => {
     act(() => root.unmount())
     host.remove()
+    unmountTyporaSkeleton()
   })
 
   it('starts in the Typora shell without a welcome fallback', async () => {
@@ -105,8 +110,9 @@ describe('App open file entry points', () => {
     })
 
     expect(host.querySelector('.welcome-screen')).toBeNull()
-    expect(host.querySelector('#typora-sidebar')).not.toBeNull()
-    expect(host.querySelector('#file-library-search-input')).not.toBeNull()
+    // sidebar 骨架在 document.body（不在 host/#root 内），对齐 Typora DOM 结构。
+    expect(document.querySelector('#typora-sidebar')).not.toBeNull()
+    expect(document.querySelector('#file-library-search-input')).not.toBeNull()
     expect(host.querySelector('.milkdown-editor')).not.toBeNull()
     expect(openMarkdownFileInCurrentWindow).not.toHaveBeenCalled()
   })
