@@ -164,7 +164,7 @@ describe('getTyporaRuntimeShellVariables', () => {
     isTauriMock.mockReturnValue(false)
     readTyporaThemeCssMock.mockResolvedValue({
       css: '@font-face { font-family: Claude; src: url("./claude_fonts/AnthropicSansWebText.ttf") format("truetype"); }',
-      basePath: '/third-theme/claude-typora-theme-v1.0.0',
+      basePath: '/themes/claude-typora-theme-v1-0-0',
     })
 
     await applyTyporaTheme({
@@ -174,14 +174,14 @@ describe('getTyporaRuntimeShellVariables', () => {
       packageId: 'claude-typora-theme-v1-0-0',
       packageName: 'Claude',
       cssFile: 'claude.css',
-      basePath: '/third-theme/claude-typora-theme-v1.0.0',
+      basePath: '/themes/claude-typora-theme-v1-0-0',
     })
 
     const themeStyle = document.getElementById('inkwing-active-typora-theme')?.textContent ?? ''
 
     expect(convertFileSrcMock).not.toHaveBeenCalled()
     expect(themeStyle).toContain(
-      'url("/third-theme/claude-typora-theme-v1.0.0/claude_fonts/AnthropicSansWebText.ttf")',
+      'url("/themes/claude-typora-theme-v1-0-0/claude_fonts/AnthropicSansWebText.ttf")',
     )
   })
 

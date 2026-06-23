@@ -13,6 +13,18 @@ body {
   color: var(--text-color);
 }
 
+/* Typora window.css 里 <content> 是 position:absolute、#typora-sidebar 是
+   position:fixed，两者都脱离文档流；正常文档流里只剩 titlebar-overlay 等零高
+   chrome，导致 html/body/#root 的流式高度塌成 0。
+   macOS 透明窗口（WKWebView）下，流高 0 虽不直接致透明，但撑满视口高度让
+   webview 有完整内容区，合成更稳定；对 Windows 不透明窗口无害（content 的绝对
+   定位不依赖父级流高）。已在浏览器验证 content/sidebar 几何不变。 */
+html,
+body,
+#root {
+  height: 100%;
+}
+
 /* #root 不强制尺寸/布局——Typora 把窗口布局放在 body 直接子元素
    （#typora-sidebar / <content> / #typora-sidebar-resizer）上，这些现在通过
    骨架注入到 body，#root 只承载项目自造的 chrome（titlebar overlay 等），

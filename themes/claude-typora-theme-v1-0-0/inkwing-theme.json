@@ -1,0 +1,19 @@
+{
+  "id": "claude-typora-theme-v1-0-0",
+  "name": "Claude Typora Theme",
+  "type": "typora",
+  "basePath": "themes/claude-typora-theme-v1-0-0",
+  "variants": [
+    {
+      "id": "claude",
+      "name": "Claude",
+      "cssFile": "claude.css"
+    },
+    {
+      "id": "claude-dark",
+      "name": "Claude Dark",
+      "cssFile": "claude-dark.css"
+    }
+  ],
+  "importedAt": "bundled"
+}

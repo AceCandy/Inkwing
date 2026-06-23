@@ -26,12 +26,31 @@ function cleanEnv() {
   return env
 }
 
+// Node 18.20+/20.12+ 起禁止在不带 shell 的情况下 spawn .cmd/.bat（CVE-2024-27980），
+// 直接 spawn('npm.cmd') 会抛 EINVAL。npm/tauri 在 Windows 下都是 .cmd 包装。
+// 但给 spawn 加 shell:true 又会触发 DEP0190 转义告警。折中：Windows 下需要走 .cmd 的
+// 命令，显式包成 `cmd.exe /c <cmd> <args...>`，shell 保持 false，既不抛 EINVAL 也无告警。
+// cargo / osascript 是真二进制，无需包装。
+function normalizeSpawn(command, commandArgs) {
+  if (process.platform === 'win32') {
+    const base = command.replace(/^.*[\\/]/, '').toLowerCase()
+    const needsCmdShim = /\.(cmd|bat)$/.test(base) || base === 'npm' || base === 'tauri'
+    if (needsCmdShim) {
+      return { command: process.env.ComSpec || 'cmd.exe', args: ['/c', command, ...commandArgs] }
+    }
+  }
+
+  return { command, args: commandArgs }
+}
+
 function runTauriCli(tauriArgs) {
   const executable = process.platform === 'win32' ? 'tauri.cmd' : 'tauri'
   const localTauri = join(rootDir, 'node_modules', '.bin', executable)
   const command = existsSync(localTauri) ? localTauri : executable
 
-  const child = spawn(command, tauriArgs, {
+  const { command: spawnCmd, args: spawnArgs } = normalizeSpawn(command, tauriArgs)
+
+  const child = spawn(spawnCmd, spawnArgs, {
     env: cleanEnv(),
     stdio: 'inherit',
   })
@@ -53,15 +72,21 @@ function runTauriCli(tauriArgs) {
 
 async function runDev() {
   const env = cleanEnv()
-  const vite = spawn(
-    npmCommand(),
-    ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '1420', '--strictPort'],
-    {
-      cwd: rootDir,
-      env,
-      stdio: 'inherit',
-    },
-  )
+  const { command: viteCmd, args: viteArgs } = normalizeSpawn(npmCommand(), [
+    'run',
+    'dev',
+    '--',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    '1420',
+    '--strictPort',
+  ])
+  const vite = spawn(viteCmd, viteArgs, {
+    cwd: rootDir,
+    env,
+    stdio: 'inherit',
+  })
 
   let cargo = null
   let lastSnapshot = snapshotWatchedFiles()
@@ -88,7 +113,14 @@ async function runDev() {
       return
     }
 
-    cargo = spawn('cargo', ['run', '--no-default-features', '--color', 'always', '--'], {
+    const { command: cargoCmd, args: cargoArgs } = normalizeSpawn('cargo', [
+      'run',
+      '--no-default-features',
+      '--color',
+      'always',
+      '--',
+    ])
+    cargo = spawn(cargoCmd, cargoArgs, {
       cwd: join(rootDir, 'src-tauri'),
       env,
       stdio: 'inherit',

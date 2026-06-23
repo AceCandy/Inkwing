@@ -82,8 +82,7 @@ inkwing/
 ├── src-tauri/            # Tauri 和 Rust 后端
 │   ├── capabilities/     # Tauri capability 配置
 │   └── src/              # 命令和原生应用入口
-├── themes/               # 内置 CSS 变量主题
-├── third-theme/          # Typora 主题参考包
+├── themes/               # 内置 Typora 主题（claude / catppuccin，各带 inkwing-theme.json）
 └── package.json
 ```
 

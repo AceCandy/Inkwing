@@ -12,7 +12,7 @@ const BUNDLED_TYPORA_THEME_PACKAGES: TyporaThemePackage[] = [
     id: 'claude-typora-theme-v1-0-0',
     name: 'Claude Typora Theme',
     type: 'typora',
-    basePath: '/third-theme/claude-typora-theme-v1.0.0',
+    basePath: '/themes/claude-typora-theme-v1-0-0',
     importedAt: 'bundled',
     variants: [
       {

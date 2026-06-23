@@ -60,10 +60,10 @@ describe('theme registry', () => {
       'typora:catppuccin-mocha:theme',
       'typora:catppuccin-latte:theme',
     ])
-    expect(fetchMock).toHaveBeenCalledWith('/third-theme/claude-typora-theme-v1.0.0/claude.css?raw')
+    expect(fetchMock).toHaveBeenCalledWith('/themes/claude-typora-theme-v1-0-0/claude.css?raw')
     expect(css).toEqual({
       css: '/* bundled Typora css */\n#write { color: var(--font-color); }',
-      basePath: '/third-theme/claude-typora-theme-v1.0.0',
+      basePath: '/themes/claude-typora-theme-v1-0-0',
     })
   })
 

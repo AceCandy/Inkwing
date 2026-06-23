@@ -82,8 +82,7 @@ inkwing/
 ├── src-tauri/            # Tauri and Rust backend
 │   ├── capabilities/     # Tauri capability configuration
 │   └── src/              # Commands and native app entry points
-├── themes/               # Bundled CSS-variable themes
-├── third-theme/          # Reference Typora theme package
+├── themes/               # Bundled Typora themes (claude / catppuccin, each with inkwing-theme.json)
 └── package.json
 ```
 
