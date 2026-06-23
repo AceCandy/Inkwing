@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { TyporaShell } from './components/TyporaShell'
+import { FooterStatsPortal } from './components/TyporaShell/FooterStatsPortal'
 import { MilkdownEditor } from './components/Editor'
 import { SettingsModal } from './components/SettingsModal'
+import { t, getLanguage } from './i18n'
 import { useEditorStore } from './stores/editorStore'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useAutoSave } from './hooks/useAutoSave'
 import { applyThemeOption, getThemeOption, refreshExternalThemes } from './themes'
-import { isRunningInTauri } from './utils/tauriRuntime'
+import { isMac, isRunningInTauri } from './utils/tauriRuntime'
+import { countTyporaWords } from './utils/wordCount'
 import { openMarkdownFileForEditorState } from './utils/openMarkdownFile'
 import './App.css'
 
@@ -61,37 +64,7 @@ function persistSidebarWidth(width: number) {
   }
 }
 
-// 字数统计：逐字复刻 Typora main.js 的口径，不自己编算法。
-//   - 字数：CJK 逐字（\u3040-\uABFF、\uD7A4-\uFAFF 范围每个字符算一词）+ 剩余文本按
-//     标点/空白拆词，撇号连字（'s 'll 're）按一词。对应 main.js 的 s=function(e){...}。
-//   - 字符数：getMarkdown().length（原始 markdown 长度，不 trim）。
-//   - 行数：getMarkdown().split(/\n/g).length。
-//   - 阅读时间：Math.round(wordCount / File.option.wordsPerMinute)，默认 wordsPerMinute=382。
-const TYPORA_WORDS_PER_MINUTE = 382
-
-function countTyporaWords(markdown: string): { words: number; characters: number; lines: number; minutes: number } {
-  // === 字数（CJK 逐字 + 标点拆词），逐字取自 main.js 的 s= 函数 ===
-  let cjkCount = 0
-  const withoutCjk = markdown.replace(/[\u3040-\uABFF\uD7A4-\uFAFF]/gi, () => {
-    cjkCount += 1
-    return ' '
-  })
-  // 撇号连字（'s 'll 're 've 'd 'm）视为一词
-  const withoutApostrophes = withoutCjk.replace(/['’]\w+/g, 'b')
-  // 行首/空白后的标点（含全角符号 \u3000-\u303F、半角 !-/ :-@ [-` {-~）当分隔
-  const dePunctuated = withoutApostrophes.replace(/(^|\s+)[(\u3000-\u303F)!-/:-@[-`{-~]+(\s+|$)/gm, ' ')
-  const tokens = ['d', dePunctuated, 'd'].join(' ').split(/[(\u3000-\u303F)\s!-,\\:-@[-`{-~]+/g)
-  const words = cjkCount + tokens.length - 2
-
-  // === 字符数：原始 markdown 长度（main.js updateCharCount: e.length）===
-  const characters = markdown.length
-  // === 行数：按 \n 拆（main.js updateLineCount: split(/\n/g).length）===
-  const lines = markdown.split(/\n/g).length
-  // === 阅读时间（main.js updateReadTime: Math.round(words / wordsPerMinute)）===
-  const minutes = Math.round(words / TYPORA_WORDS_PER_MINUTE)
-
-  return { words, characters, lines, minutes }
-}
+// 字数统计口径见 src/utils/wordCount.ts（逐字复刻 Typora main.js，mac/win 共用同一出口）。
 
 function App() {
   const {
@@ -175,6 +148,17 @@ function App() {
         .catch((err) => console.error('Failed to load file from URL:', err))
     }
   }, [openFile])
+
+  // 启动时把原生菜单（Tauri Rust build_menu）同步为当前语言。菜单文本在 Rust 侧按
+  // lang 参数构建，前端 localStorage 存语言，启动时调一次 set_menu_language 更新。
+  // SettingsModal 切换语言时也会调用同一命令（见 SettingsModal handleLanguageChange）。
+  useEffect(() => {
+    if (!isRunningInTauri()) return
+    const lang = getLanguage()
+    invoke('set_menu_language', { lang }).catch((err) =>
+      console.error('Failed to sync menu language:', err),
+    )
+  }, [])
 
   // 监听菜单事件
   useEffect(() => {
@@ -285,6 +269,7 @@ function App() {
         左上系统红绿灯由 macOS 渲染。本项目用 Tauri，只在 28px 标题栏区域自渲染轻量覆盖层。
         正文 <content> 的 top 由 Typora window.css 提供。
         data-tauri-drag-region 让整条可拖拽移动窗口（Tauri 等价 -webkit-app-region:drag）。
+        字数位置平台分流：macOS 右上 titlebar；Windows 底部 footer（见 FooterStatsPortal）。
       */}
       <div
         className="mac-titlebar-overlay inkwing-chrome"
@@ -294,10 +279,15 @@ function App() {
         <span
           className={`mac-titlebar-filename${isModified ? ' mac-titlebar-filename-modified' : ''}`}
         >
-          {fileName || 'Untitled'}
+          {fileName || t('fileInfo.untitled')}
         </span>
-        <span className="mac-titlebar-wordcount">{wordCount.words} Words</span>
+        {isMac() && <span className="mac-titlebar-wordcount">{wordCount.words} Words</span>}
       </div>
+
+      {/* Windows 底部 footer 字数统计。骨架由 skeletonHtml.ts 注入，window.css 接管样式；
+          仅 Windows 给 body 加 .show-footer 显示（mountSkeleton）。macOS 上 footer 隐藏，
+          portal 写入不可见，无副作用。 */}
+      <FooterStatsPortal />
 
       <content>
         <MilkdownEditor />

@@ -4,18 +4,12 @@ import { invoke } from '@tauri-apps/api/core'
 import { save } from '@tauri-apps/plugin-dialog'
 import { useLanguage } from '../i18n'
 import { openMarkdownFileForEditorState } from '../utils/openMarkdownFile'
+import { isMac } from '../utils/tauriRuntime'
 
 type ShortcutHandler = () => void
 
 interface ShortcutMap {
   [key: string]: ShortcutHandler
-}
-
-/**
- * 检测是否为 macOS 平台
- */
-const isMac = (): boolean => {
-  return navigator.platform.toUpperCase().indexOf('MAC') >= 0
 }
 
 /**

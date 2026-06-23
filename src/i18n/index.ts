@@ -48,6 +48,32 @@ const translations: Record<string, Translations> = {
     'shortcuts.italic': '斜体',
     'shortcuts.toggleSidebar': '切换侧边栏',
     'shortcuts.toggleSplitMode': '切换分栏模式',
+
+    // 底部 footer 字数统计（Windows 形态）
+    'footer.words': '字数',
+    'footer.characters': '字符',
+    'footer.lines': '行数',
+    'footer.readTime': '阅读时间（分钟）',
+    'footer.wordsUnit': '字',  // 「N 字」单位
+    'footer.spellCheck': '中文',
+
+    // 文件信息面板（侧栏 file-info）
+    'fileInfo.untitled': '未命名',
+    'fileInfo.modified': '已修改',
+    'fileInfo.saved': '已保存',
+    'fileInfo.unsavedChanges': '有未保存的修改',
+    'fileInfo.allSaved': '所有修改已保存',
+    'fileInfo.newDocument': '这是一个新文档',
+    'fileInfo.saveNow': '立即保存',
+    'fileInfo.content': '内容',
+    'fileInfo.minutes': '分钟',
+    'fileInfo.words': '字',
+    'fileInfo.characters': '字符',
+
+    // 侧栏 tab 标题
+    'sidebar.outline': '大纲',
+    'sidebar.files': '文件',
+    'sidebar.search': '搜索',
   },
   en: {
     // Welcome page
@@ -92,6 +118,32 @@ const translations: Record<string, Translations> = {
     'shortcuts.italic': 'Italic',
     'shortcuts.toggleSidebar': 'Toggle Sidebar',
     'shortcuts.toggleSplitMode': 'Toggle Split Mode',
+
+    // Bottom footer word count (Windows form)
+    'footer.words': 'Words',
+    'footer.characters': 'Characters',
+    'footer.lines': 'Lines',
+    'footer.readTime': 'Read Time (min)',
+    'footer.wordsUnit': 'Words',
+    'footer.spellCheck': 'English',
+
+    // File info panel (sidebar file-info)
+    'fileInfo.untitled': 'Untitled',
+    'fileInfo.modified': 'Modified',
+    'fileInfo.saved': 'Saved',
+    'fileInfo.unsavedChanges': 'Unsaved Changes',
+    'fileInfo.allSaved': 'All Changes Saved',
+    'fileInfo.newDocument': 'This is a New Document',
+    'fileInfo.saveNow': 'Save Now',
+    'fileInfo.content': 'Content',
+    'fileInfo.minutes': 'minutes',
+    'fileInfo.words': 'words',
+    'fileInfo.characters': 'characters',
+
+    // Sidebar tab titles
+    'sidebar.outline': 'Outline',
+    'sidebar.files': 'Files',
+    'sidebar.search': 'Search',
   },
 }
 

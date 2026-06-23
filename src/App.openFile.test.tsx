@@ -71,6 +71,7 @@ vi.mock('./i18n', () => ({
   useLanguage: () => ({
     t: (key: string) => key,
   }),
+  t: (key: string) => key,
 }))
 
 vi.mock('./stores/editorStore', () => ({

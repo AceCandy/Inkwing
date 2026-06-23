@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { open } from '@tauri-apps/plugin-dialog'
+import { invoke } from '@tauri-apps/api/core'
 import { useEditorStore } from '../../stores/editorStore'
+import { isRunningInTauri } from '../../utils/tauriRuntime'
 import {
   getAllThemes,
   refreshExternalThemes,
@@ -83,6 +85,12 @@ export const SettingsModal: React.FC = () => {
 
   const handleLanguageChange = (lang: string) => {
     changeLanguage(lang)
+    // 同步 Tauri 原生菜单（Rust build_menu 按 lang 构建菜单文本）。
+    if (isRunningInTauri()) {
+      invoke('set_menu_language', { lang }).catch((err) =>
+        console.error('Failed to sync menu language:', err),
+      )
+    }
   }
 
   const handleClose = () => {

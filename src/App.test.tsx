@@ -53,7 +53,7 @@ vi.mock('./themes', () => ({
     packageName: 'Claude Typora Theme',
     name: 'Claude Typora Theme / Claude',
     cssFile: 'claude.css',
-    basePath: '/third-theme/claude-typora-theme-v1.0.0',
+    basePath: '/themes/claude-typora-theme-v1-0-0',
   })),
   refreshExternalThemes: vi.fn(),
 }))
@@ -62,6 +62,7 @@ vi.mock('./i18n', () => ({
   useLanguage: () => ({
     t: (key: string) => key,
   }),
+  t: (key: string) => key,
 }))
 
 vi.mock('./stores/editorStore', () => ({
@@ -157,25 +158,80 @@ describe('App sidebar resizing', () => {
     expect(TYPORA_SHELL_HTML).toContain('data-after-content="Outline is Empty."')
   })
 
-  it('renders macOS seamless titlebar overlay with centered filename and right word count', () => {
-    const html = renderToStaticMarkup(<AppModule.default />)
+  it('skeleton HTML contains Typora-native bottom footer for Windows word count', () => {
+    // footer.ty-footer 默认 display:none，body 加 .show-footer（mountSkeleton 在 Windows 加）
+    // 才显示。骨架始终注入，让 Typora window.css 的 footer 样式（定位/hover/pin 偏移）直接生效。
+    expect(TYPORA_SHELL_HTML).toContain('class="stopselect ty-footer"')
+    expect(TYPORA_SHELL_HTML).toContain('id="outline-btn"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-more-btn"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-spell-check"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-word-count"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-word-count-label"')
+    expect(TYPORA_SHELL_HTML).toContain('class="ty-word-count-expand"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-word-count-info"')
+    // 明细面板表格单元格（FooterStatsPortal 写入目标）
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-word-count-td"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-char-count-td"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-line-count-td"')
+    expect(TYPORA_SHELL_HTML).toContain('id="footer-read-time-td"')
+  })
 
-    // macOS 形态：Typora 用原生 Cocoa 标题栏渲染文件名/字数，本项目用 Tauri 无 Cocoa bridge，
-    // 自渲染轻量覆盖层（带 .inkwing-chrome 隔离 Typora reset）。
-    expect(html).toContain('mac-titlebar-overlay')
-    expect(html).toContain('inkwing-chrome')
-    expect(html).toContain('data-tauri-drag-region="true"')
-    expect(html).toContain('class="mac-titlebar-filename')
-    expect(html).toContain('>demo.md<')
-    expect(html).toContain('class="mac-titlebar-wordcount"')
-    expect(html).toContain('Words')
-    // 不渲染 Electron/unibody 形态的 #top-titlebar / traffic lights / footer.ty-footer。
-    expect(html).not.toContain('id="top-titlebar"')
-    expect(html).not.toContain('id="w-traffic-lights"')
-    expect(html).not.toContain('id="w-menu-btn"')
-    expect(html).not.toContain('class="stopselect ty-footer"')
-    expect(html).not.toContain('id="footer-word-count"')
-    expect(html).not.toContain('id="outline-btn"')
+  it('renders macOS seamless titlebar overlay with centered filename and right word count', () => {
+    // mock 为 macOS：titlebar 右上显示字数，footer 隐藏（不加 .show-footer）。
+    const originalPlatform = navigator.platform
+    const originalUserAgent = navigator.userAgent
+    Object.defineProperty(navigator, 'platform', { value: 'MacIntel', configurable: true })
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Macintosh) AppleWebKit',
+      configurable: true,
+    })
+
+    try {
+      const html = renderToStaticMarkup(<AppModule.default />)
+
+      // macOS 形态：Typora 用原生 Cocoa 标题栏渲染文件名/字数，本项目用 Tauri 无 Cocoa bridge，
+      // 自渲染轻量覆盖层（带 .inkwing-chrome 隔离 Typora reset）。
+      expect(html).toContain('mac-titlebar-overlay')
+      expect(html).toContain('inkwing-chrome')
+      expect(html).toContain('data-tauri-drag-region="true"')
+      expect(html).toContain('class="mac-titlebar-filename')
+      expect(html).toContain('>demo.md<')
+      // macOS 右上 titlebar 字数。
+      expect(html).toContain('class="mac-titlebar-wordcount"')
+      expect(html).toContain('Words')
+      // 不渲染 Electron/unibody 形态的 #top-titlebar / traffic lights。
+      expect(html).not.toContain('id="top-titlebar"')
+      expect(html).not.toContain('id="w-traffic-lights"')
+      expect(html).not.toContain('id="w-menu-btn"')
+      // footer 骨架在 skeletonHtml（不在 React SSR 输出里）；App 也不渲染它。
+      expect(html).not.toContain('class="stopselect ty-footer"')
+    } finally {
+      Object.defineProperty(navigator, 'platform', { value: originalPlatform, configurable: true })
+      Object.defineProperty(navigator, 'userAgent', { value: originalUserAgent, configurable: true })
+    }
+  })
+
+  it('hides macOS titlebar word count on Windows (footer takes over instead)', () => {
+    // mock 为 Windows：titlebar 不显示字数（字数走底部 footer）。
+    const originalPlatform = navigator.platform
+    const originalUserAgent = navigator.userAgent
+    Object.defineProperty(navigator, 'platform', { value: 'Win32', configurable: true })
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Windows NT 10.0)',
+      configurable: true,
+    })
+
+    try {
+      const html = renderToStaticMarkup(<AppModule.default />)
+
+      // Windows 形态：titlebar 仍渲染（拖拽区 + 文件名），但不含右上字数。
+      expect(html).toContain('mac-titlebar-overlay')
+      expect(html).toContain('class="mac-titlebar-filename')
+      expect(html).not.toContain('class="mac-titlebar-wordcount"')
+    } finally {
+      Object.defineProperty(navigator, 'platform', { value: originalPlatform, configurable: true })
+      Object.defineProperty(navigator, 'userAgent', { value: originalUserAgent, configurable: true })
+    }
   })
 
   it('renders content with Milkdown editor (Typora <content> custom element)', () => {

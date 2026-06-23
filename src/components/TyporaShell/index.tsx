@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { invoke } from '@tauri-apps/api/core'
 import { useEditorStore } from '../../stores/editorStore'
+import { t } from '../../i18n'
 
 // 方案 A：Typora 原生骨架直供。本组件不再渲染 sidebar 的骨架 DOM（骨架由
 // mountTyporaSkeleton 注入 document.body），只通过 React portal 把动态内容
@@ -310,11 +311,19 @@ export const TyporaShell: React.FC = () => {
   useEffect(() => {
     // 骨架由 mountTyporaSkeleton 在应用启动时注入；这里只做 portal 目标解析。
     let raf = requestAnimationFrame(() => {
+      // file-info 骨架带 Typora 原生的初始英文结构（Save Now / Content / minutes 等）。
+      // createPortal 会把 React 内容作为子节点追加进去，与骨架初始内容共存导致重复（实测
+      // 出现两个 #file-info-save-btn，getElementById 命中骨架那个英文的）。这里清空骨架内容，
+      // 让 portal 成为唯一来源。
+      const fileInfoEl = query<HTMLElement>('#file-info-content')
+      if (fileInfoEl) {
+        fileInfoEl.innerHTML = ''
+      }
       setPortalTargets({
         outline: query('#outline-content'),
         fileTree: query('#file-library-tree'),
         searchResult: query('#file-library-search-result'),
-        fileInfo: query('#file-info-content'),
+        fileInfo: fileInfoEl,
       })
     })
     return () => cancelAnimationFrame(raf)
@@ -815,11 +824,11 @@ export const TyporaShell: React.FC = () => {
           <React.Fragment>
             <div id="file-info-meta-group">
               <div id="file-info-last-saved-sub" className="file-info-item-subtitle">
-                {isModified ? 'Modified' : 'Saved'}
+                {isModified ? t('fileInfo.modified') : t('fileInfo.saved')}
               </div>
               <div className="file-info-title file-info-field ">
                 <div id="file-info-filename" className="file-info-field-value">
-                  {fileName || 'Untitled.md'}
+                  {fileName || t('fileInfo.untitled')}
                 </div>
                 <div
                   id="file-info-filename-input-area"
@@ -840,29 +849,29 @@ export const TyporaShell: React.FC = () => {
             </div>
             <div id="file-info-save-group">
               <div className="file-info-item-subtitle">
-                {filePath ? (isModified ? 'Unsaved Changes' : 'All Changes Saved') : 'This is a New Document'}
+                {filePath ? (isModified ? t('fileInfo.unsavedChanges') : t('fileInfo.allSaved')) : t('fileInfo.newDocument')}
               </div>
-              <div id="file-info-save-btn" className="file-info-save-btn">Save Now</div>
+              <div id="file-info-save-btn" className="file-info-save-btn">{t('fileInfo.saveNow')}</div>
             </div>
             <div id="file-info-contet-group">
-              <div className="file-info-item-subtitle">Content</div>
+              <div className="file-info-item-subtitle">{t('fileInfo.content')}</div>
               <div className="file-info-field file-info-field-read">
                 <span className="file-info-field-read-value" id="file-info-field-read-value-minutes">
                   {fileStats.minutes}
                 </span>
-                minutes
+                {t('fileInfo.minutes')}
               </div>
               <div className="file-info-field file-info-field-read">
                 <span className="file-info-field-read-value" id="file-info-field-read-value-word">
                   {fileStats.words}
                 </span>
-                words
+                {t('fileInfo.words')}
               </div>
               <div className="file-info-field file-info-field-read">
                 <span className="file-info-field-read-value" id="file-info-field-read-value-ch">
                   {fileStats.characters}
                 </span>
-                characters
+                {t('fileInfo.characters')}
               </div>
             </div>
           </React.Fragment>,

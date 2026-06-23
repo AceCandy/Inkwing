@@ -95,11 +95,11 @@ vi.mock('../', () => ({
     packageName: 'Claude',
     name: 'Claude',
     cssFile: 'claude.css',
-    basePath: '/third-theme/claude-typora-theme-v1.0.0',
+    basePath: '/themes/claude-typora-theme-v1-0-0',
   })),
   refreshExternalThemes: vi.fn(),
 }))
-vi.mock('../../i18n', () => ({ useLanguage: () => ({ t: (k: string) => k }) }))
+vi.mock('../../i18n', () => ({ useLanguage: () => ({ t: (k: string) => k }), t: (k: string) => k }))
 vi.mock('../../stores/editorStore', () => ({
   useEditorStore: () => ({
     filePath: '/demo/hello.md',
@@ -275,7 +275,7 @@ afterEach(() => {
 
 describe('claude.css sidebar selector audit', () => {
   it('reports which sidebar selectors fail to match our DOM', () => {
-    const cssPath = `${process.cwd()}/third-theme/claude-typora-theme-v1.0.0/claude.css`
+    const cssPath = `${process.cwd()}/themes/claude-typora-theme-v1-0-0/claude.css`
     const allSelectors = extractSelectors(cssPath)
     const sidebarSelectors = allSelectors.filter(isSidebarSelector)
 
@@ -318,7 +318,7 @@ describe('claude.css topbar/footer/write selector audit', () => {
   // #footer-word-count 等 DOM 【本就不应出现】，对应 claude.css 选择器命中 0 属正常，
   // 归入 IRRELEVANT，不算骨架缺失。
   it('reports which topbar/footer/write selectors fail to match our DOM', () => {
-    const cssPath = `${process.cwd()}/third-theme/claude-typora-theme-v1.0.0/claude.css`
+    const cssPath = `${process.cwd()}/themes/claude-typora-theme-v1-0-0/claude.css`
     const allSelectors = extractSelectors(cssPath)
     const chromeSelectors = allSelectors.filter(isChromeSelector)
 

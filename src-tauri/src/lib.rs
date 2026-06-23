@@ -4,6 +4,8 @@ use std::path::Path;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::Emitter;
 use tauri::Manager;
+// TitleBarStyle 与 .title_bar_style() 在 Tauri 2 中仅 macOS 编译可用。
+#[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
 
 pub mod typora_themes;
@@ -502,20 +504,59 @@ fn read_theme_css(theme_path: String) -> Result<String, String> {
 }
 
 /// 构建原生菜单
-fn build_menu(app: &tauri::AppHandle) -> Result<Menu<tauri::Wry>, String> {
+// 菜单文本本地化字典。Rust 侧没有 i18n 框架，菜单文本由 build_menu 按 lang 参数选取。
+// 与前端 src/i18n/index.ts 的菜单相关词条保持一致。
+struct MenuTexts {
+    file: &'static str,
+    settings: &'static str,
+    new_file: &'static str,
+    open_file: &'static str,
+    save: &'static str,
+    save_as: &'static str,
+    settings_item: &'static str,
+    quit: &'static str,
+}
+
+fn menu_texts(lang: &str) -> MenuTexts {
+    match lang {
+        "zh" => MenuTexts {
+            file: "文件",
+            settings: "设置",
+            new_file: "新建文件",
+            open_file: "打开文件",
+            save: "保存",
+            save_as: "另存为",
+            settings_item: "设置...",
+            quit: "退出",
+        },
+        _ => MenuTexts {
+            file: "File",
+            settings: "Settings",
+            new_file: "New File",
+            open_file: "Open File",
+            save: "Save",
+            save_as: "Save As",
+            settings_item: "Settings...",
+            quit: "Quit",
+        },
+    }
+}
+
+fn build_menu(app: &tauri::AppHandle, lang: &str) -> Result<Menu<tauri::Wry>, String> {
+    let t = menu_texts(lang);
     // 文件菜单项
-    let new_file = MenuItem::with_id(app, "new_file", "New File", true, Some("CmdOrCtrl+N"))
+    let new_file = MenuItem::with_id(app, "new_file", t.new_file, true, Some("CmdOrCtrl+N"))
         .map_err(|e| format!("Failed to create menu item: {}", e))?;
-    let open_file = MenuItem::with_id(app, "open_file", "Open File", true, Some("CmdOrCtrl+O"))
+    let open_file = MenuItem::with_id(app, "open_file", t.open_file, true, Some("CmdOrCtrl+O"))
         .map_err(|e| format!("Failed to create menu item: {}", e))?;
-    let save = MenuItem::with_id(app, "save", "Save", true, Some("CmdOrCtrl+S"))
+    let save = MenuItem::with_id(app, "save", t.save, true, Some("CmdOrCtrl+S"))
         .map_err(|e| format!("Failed to create menu item: {}", e))?;
-    let save_as = MenuItem::with_id(app, "save_as", "Save As", true, Some("CmdOrCtrl+Shift+S"))
+    let save_as = MenuItem::with_id(app, "save_as", t.save_as, true, Some("CmdOrCtrl+Shift+S"))
         .map_err(|e| format!("Failed to create menu item: {}", e))?;
 
     let file_submenu = Submenu::with_items(
         app,
-        "File",
+        t.file,
         true,
         &[
             &new_file,
@@ -526,23 +567,35 @@ fn build_menu(app: &tauri::AppHandle) -> Result<Menu<tauri::Wry>, String> {
             &save_as,
             &PredefinedMenuItem::separator(app)
                 .map_err(|e| format!("Failed to create separator: {}", e))?,
-            &PredefinedMenuItem::quit(app, Some("Quit"))
+            &PredefinedMenuItem::quit(app, Some(t.quit))
                 .map_err(|e| format!("Failed to create quit item: {}", e))?,
         ],
     )
     .map_err(|e| format!("Failed to create file submenu: {}", e))?;
 
     // 设置菜单项
-    let settings = MenuItem::with_id(app, "settings", "Settings...", true, Some("CmdOrCtrl+,"))
+    let settings = MenuItem::with_id(app, "settings", t.settings_item, true, Some("CmdOrCtrl+,"))
         .map_err(|e| format!("Failed to create menu item: {}", e))?;
 
-    let settings_submenu = Submenu::with_items(app, "Settings", true, &[&settings])
+    let settings_submenu = Submenu::with_items(app, t.settings, true, &[&settings])
         .map_err(|e| format!("Failed to create settings submenu: {}", e))?;
 
     let menu = Menu::with_items(app, &[&file_submenu, &settings_submenu])
         .map_err(|e| format!("Failed to create menu: {}", e))?;
 
     Ok(menu)
+}
+
+/// 更新所有窗口的菜单语言。前端在启动时和切换语言时调用。
+#[tauri::command]
+async fn set_menu_language(app: tauri::AppHandle, lang: String) -> Result<(), String> {
+    let menu = build_menu(&app, &lang)?;
+    for window in app.webview_windows().values() {
+        window
+            .set_menu(menu.clone())
+            .map_err(|e| format!("Failed to set menu: {}", e))?;
+    }
+    Ok(())
 }
 
 /// 创建新窗口
@@ -561,17 +614,26 @@ async fn create_window(app: tauri::AppHandle, file_path: Option<String>) -> Resu
         None => "index.html".to_string(),
     };
 
-    let menu = build_menu(&app)?;
+    let menu = build_menu(&app, "en")?;
 
-    let _window =
+    // builder 仅在 macOS 上被重新赋值（.title_bar_style），其它平台编译器会认为 mut 多余。
+    #[cfg_attr(not(target_os = "macos"), allow(unused_mut))]
+    let mut builder =
         tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
             .title("")
-            .title_bar_style(TitleBarStyle::Overlay)
             .inner_size(1200.0, 800.0)
             .min_inner_size(800.0, 600.0)
-            .menu(menu)
-            .build()
-            .map_err(|e| format!("Failed to create window: {}", e))?;
+            .menu(menu);
+
+    // Tauri 2 的 .title_bar_style() 仅 macOS 编译可用，非 macOS 平台不能调用。
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.title_bar_style(TitleBarStyle::Overlay);
+    }
+
+    let _window = builder
+        .build()
+        .map_err(|e| format!("Failed to create window: {}", e))?;
 
     Ok(label)
 }
@@ -613,7 +675,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
-            let menu = build_menu(app.handle())?;
+            let menu = build_menu(app.handle(), "en")?;
             menu.set_as_app_menu()?;
 
             #[cfg(target_os = "macos")]
@@ -664,6 +726,7 @@ pub fn run() {
             export_html,
             create_window,
             rename_file,
+            set_menu_language,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

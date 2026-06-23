@@ -67,7 +67,9 @@ interface EditorState {
 export const useEditorStore = create<EditorState>((set) => ({
   // 初始状态
   filePath: null,
-  fileName: 'Untitled',
+  // 空字符串：未打开文件时由 UI 层显示本地化的「未命名」文案（fileName || t('fileInfo.untitled')）。
+  // 不在此处硬编码 'Untitled'，否则 i18n 的 || 兜底永远不触发。
+  fileName: '',
   content: '',
   isModified: false,
   lastSavedContent: '',
@@ -87,7 +89,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   // 新建文件（在当前窗口进入编辑器）
   newFile: () => set({
     filePath: '',
-    fileName: 'Untitled',
+    fileName: '',
     content: '',
     isModified: false,
     lastSavedContent: '',
@@ -120,7 +122,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   // 重置文档状态
   resetDocument: () => set({
     filePath: null,
-    fileName: 'Untitled',
+    fileName: '',
     content: '',
     isModified: false,
     lastSavedContent: '',
